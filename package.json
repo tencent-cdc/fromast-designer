@@ -1,0 +1,32 @@
+{
+  "name": "formast-designer",
+  "version": "0.0.1",
+  "description": "Formast（帆桅）表单可视化设计器",
+  "main": "index.js",
+  "scripts": {
+    "dev": "parcel examples/spec/index.html --out-dir .cache/.dist"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://git.woa.com/tisontang/formast-designer.git"
+  },
+  "author": "tisontang",
+  "license": "ISC",
+  "dependencies": {
+    "@tencent/tdesign-react": "^0.1.0",
+    "immer": "^8.0.1",
+    "react": "^17.0.1",
+    "react-dom": "^17.0.1",
+    "styled-components": "^5.2.1",
+    "ts-fns": "^9.0.2",
+    "tyshemo": "^10.1.1"
+  },
+  "devDependencies": {
+    "less": "^4.1.0",
+    "parcel-bundler": "^1.12.4"
+  },
+  "private": true,
+  "alias": {
+    "formast-designer": "./src"
+  }
+}

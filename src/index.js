@@ -19,11 +19,14 @@ export class FormastEditor {
 
     this.el = el
     this.update()
+
+    return this
   }
   update() {
     if (!this.el) {
-      return
+      return this
     }
+
     ReactDOM.render(
       <App
         config={this.config}
@@ -42,17 +45,21 @@ export class FormastEditor {
       />,
       this.el,
     )
+
+    return this
   }
   unmount() {
     if (this.el) {
-      React.unmountComponentAtNode(this.el)
+      ReactDOM.unmountComponentAtNode(this.el)
     }
+    return this
   }
   reset() {
     if (this.el) {
       this.unmount()
       this.mount(this.el)
     }
+    return this
   }
 
   on(event, fn) {
@@ -61,7 +68,7 @@ export class FormastEditor {
   emit(event, data) {
     this.emitters.forEach((item) => {
       if (item.event === event) {
-        fn(data)
+        item.fn(data)
       }
     })
   }

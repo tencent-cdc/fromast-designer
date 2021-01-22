@@ -1,7 +1,20 @@
 import { createFormastEditor } from 'formast-designer'
 import * as config from './config'
 
-const editor = createFormastEditor(config, '#form-editor')
+const editor = createFormastEditor(config)
+editor.mount('#form-editor')
+
+const json = sessionStorage.getItem('__JSON__')
+if (json) {
+  const formJSON = JSON.parse(json)
+  editor.setJSON(formJSON)
+}
+editor.on('save', () => {
+  const json = editor.getJSON()
+  const formJSON = JSON.stringify(json)
+  sessionStorage.setItem('__JSON__', formJSON)
+})
+
 
 // editor.mount('#form-editor')
 // editor.unmount()
@@ -13,12 +26,7 @@ const editor = createFormastEditor(config, '#form-editor')
 // // 获取当前的json
 // editor.getJSON()
 
-// editor.on('save', (json) => {
-//   fetch('...', {
-//     method: 'POST',
-//     body: JSON.stringify(json),
-//   })
-// })
+
 // editor.on('download', (json) => {
 //   // ...
 // })

@@ -5,7 +5,7 @@ const PRIMARY_COLOR_DARK = '#4e9cf0'
 const SECONDARY_COLOR = '#eee'
 const SECONDARY_COLOR_DARK = '#e3e0e0'
 
-export const Button = styled.button`
+export const Button = styled.button.attrs({ type: 'button' })`
   border: 0;
   border-radius: 3px;
   padding: ${props => props.lg ? '10px 35px' : '5px 15px'};

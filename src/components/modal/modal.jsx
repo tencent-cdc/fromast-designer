@@ -18,7 +18,7 @@ const ModalBox = styled.div`
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
-  min-width: 900px;
+  width: ${props => props.width ? props.width + 'px' : '600px'};
   background-color: #fff;
 `
 
@@ -56,6 +56,8 @@ const ModalContent = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
+  max-height: 70vh;
+  overflow: auto;
 `
 
 const ModalFooter = styled(ModalTitle)`
@@ -66,10 +68,10 @@ const ModalFooter = styled(ModalTitle)`
 `
 
 export function Modal(props) {
-  const { isShow, onClose, title, children, onCancel, onSubmit, disabelCancel, keepAlive } = props
+  const { isShow, onClose, title, children, onCancel, onSubmit, disabelCancel, keepAlive, width } = props
   return (
     <ModalContainer isShow={isShow}>
-      <ModalBox>
+      <ModalBox width={width}>
         <ModalClose onClick={onClose}>&times;</ModalClose>
         {title ? <ModalTitle>{title}</ModalTitle> : null}
         <ModalContent>{isShow || keepAlive ? children : null}</ModalContent>

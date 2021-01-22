@@ -1,4 +1,4 @@
-import React, { Component, useState } from 'react'
+import React, { Component, useState, useRef } from 'react'
 import styled from 'styled-components'
 import { getObjectHash, isEmpty } from 'ts-fns'
 import { Loader } from 'tyshemo'
@@ -225,23 +225,29 @@ class SchemaDesigner extends Component {
     this.setState({ isShow: true })
   }
 
+  parseMetaToJSON(meta) {}
+
+  parseSchemaJSONToMetas(json) {}
+
   render() {
     const { Field, FieldLabel, Section } = SchemaDesigner
     const { schemaJSON = {}, onSchemaJSONChange } = this.props
     const fields = Object.keys(schemaJSON)
 
-    const handleSubmitNewSchema = () => {
-      const { field, label } = this.state
-      const next = {
-        ...schemaJSON,
-        [field]: { label },
-      }
-      onSchemaJSONChange(next)
-      this.setState({
-        isShow: false,
-        field: '',
-        label: '',
-      })
+    const handleSubmitSchema = (meta) => {
+      console.log(meta)
+
+      // const { field, label } = this.state
+      // const next = {
+      //   ...schemaJSON,
+      //   [field]: { label },
+      // }
+      // onSchemaJSONChange(next)
+      // this.setState({
+      //   isShow: false,
+      //   field: '',
+      //   label: '',
+      // })
     }
 
     return (
@@ -261,17 +267,17 @@ class SchemaDesigner extends Component {
             <PrimaryButton onClick={this.handleAddField}>添加新字段</PrimaryButton>
           </Section>
         </MainSection>
-        {this.state.edit ? <RightSidebar><SchemaForm nl /></RightSidebar> : null}
+        {this.state.edit ? <RightSidebar><MetaForm aside /></RightSidebar> : null}
 
-        <Modal width="900" isShow={this.state.isShow} onClose={() => this.setState({ isShow: false })}  onCancel={() => this.setState({ isShow: false })} onSubmit={handleSubmitNewSchema}>
-          <SchemaForm />
+        <Modal width="900" title="新建字段" isShow={this.state.isShow} onClose={() => this.setState({ isShow: false })}  onCancel={() => this.setState({ isShow: false })} onSubmit={() => this.setState({ isShow: false })}>
+          {(stream$) => <MetaForm modal$={stream$} onSubmit={handleSubmitSchema} />}
         </Modal>
       </>
     )
   }
 }
 
-class SchemaForm extends Component {
+class MetaForm extends Component {
   static attrTypes = [
     { value: 0, text: '纯文本' },
     { value: 1, text: '表达式' },
@@ -280,7 +286,7 @@ class SchemaForm extends Component {
 
   static RichPropEditor(props) {
     const { label, data, onChange, options } = props
-    const items = SchemaForm.attrTypes.filter(item => options ? options.includes(item.value) : true)
+    const items = MetaForm.attrTypes.filter(item => options ? options.includes(item.value) : true)
     return (
       <>
         <Label>{label}</Label>
@@ -294,10 +300,18 @@ class SchemaForm extends Component {
   static CustomField(props) {
     const { onSubmit } = props
     const [field, setField] = useState('')
+    const el = useRef()
     return (
       <>
-        <Label><Input sm value={field} onChange={e => setField(e.target.value)} /></Label>
-        <SecondaryButton onClick={() => onSubmit(field)}>添加属性</SecondaryButton>
+        <Label style={{ width: 'auto' }}><Input sm value={field} onChange={e => setField(e.target.value)} ref={el} /></Label>
+        <SecondaryButton onClick={() => {
+          if (!field) {
+            el.current.focus()
+            return
+          }
+          onSubmit(field)
+          setField('')
+        }}>添加自定义属性</SecondaryButton>
       </>
     )
   }
@@ -335,9 +349,26 @@ class SchemaForm extends Component {
     validators: [],
   }
 
+  componentDidMount() {
+    const { data, modal$, onSubmit } = this.props
+
+    if (data) {
+      this.setState(data)
+    }
+
+    if (modal$) {
+      modal$.subscribe((type) => {
+        if (type === 'submit') {
+          const state = this.state
+          onSubmit(state)
+        }
+      })
+    }
+  }
+
   render() {
-    const { RichPropEditor, CustomField } = SchemaForm
-    const { nl } = this.props
+    const { RichPropEditor, CustomField } = MetaForm
+    const { aside } = this.props
 
     const handleChangeState = (fn) => {
       const next = produce(this.state, state => {
@@ -389,7 +420,7 @@ class SchemaForm extends Component {
     const customKeys = Object.keys(customs)
 
     return (
-      <Form nl={nl}>
+      <Form aside={aside}>
         <FormItem>
           <Label>字段 Key</Label>
           <Input value={field.value} onChange={(e) => handleChangeState(state => state.field.value = e.target.value)} />

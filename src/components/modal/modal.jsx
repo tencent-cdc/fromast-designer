@@ -1,6 +1,7 @@
-import React from 'react'
+import React, { useRef, useEffect, useCallback, useMemo } from 'react'
 import styled from 'styled-components'
 import { PrimaryButton, SecondaryButton } from '../button/button.jsx'
+import { Subject } from 'rxjs'
 
 const ModalContainer = styled.div`
   position: fixed;
@@ -53,9 +54,6 @@ const ModalTitle = styled.div`
 
 const ModalContent = styled.div`
   padding: 40px 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   max-height: 70vh;
   overflow: auto;
 `
@@ -69,15 +67,45 @@ const ModalFooter = styled(ModalTitle)`
 
 export function Modal(props) {
   const { isShow, onClose, title, children, onCancel, onSubmit, disabelCancel, keepAlive, width } = props
+
+  const stream$ = useMemo(() => new Subject(), [isShow])
+
+  const handleSubmit = useCallback(() => {
+    stream$.next('submit')
+  }, [isShow])
+
+  const handleCancel = useCallback(() => {
+    stream$.next('cancel')
+  }, [isShow])
+
+  const handleClose = useCallback(() => {
+    stream$.next('close')
+  }, [isShow])
+
+  useEffect(() => {
+    stream$.subscribe((type) => {
+      if (type === 'submit') {
+        onSubmit()
+      }
+      else if (type === 'cancel') {
+        onCancel()
+      }
+      else if (type === 'close') {
+        onClose()
+      }
+    })
+    return () => stream$.complete()
+  }, [isShow])
+
   return (
     <ModalContainer isShow={isShow}>
       <ModalBox width={width}>
-        <ModalClose onClick={onClose}>&times;</ModalClose>
+        <ModalClose onClick={handleClose}>&times;</ModalClose>
         {title ? <ModalTitle>{title}</ModalTitle> : null}
-        <ModalContent>{isShow || keepAlive ? children : null}</ModalContent>
+        <ModalContent>{isShow || keepAlive ? typeof children === 'function' ? children(stream$) : children : null}</ModalContent>
         <ModalFooter>
-          {!disabelCancel ? <SecondaryButton lg onClick={onCancel}>取消</SecondaryButton> : null}
-          <PrimaryButton lg onClick={onSubmit}>确定</PrimaryButton>
+          {!disabelCancel ? <SecondaryButton lg onClick={handleCancel}>取消</SecondaryButton> : null}
+          <PrimaryButton lg onClick={handleSubmit}>确定</PrimaryButton>
         </ModalFooter>
       </ModalBox>
     </ModalContainer>

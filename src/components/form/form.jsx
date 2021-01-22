@@ -61,7 +61,7 @@ export const Form = styled.form`
   width: 100%;
 
   ${props => {
-    if (props.nl) {
+    if (props.aside) {
       return css`
         ${FormItem} {
           flex-wrap: wrap;

@@ -1,61 +1,56 @@
-import React from 'react'
-import styled, { css } from 'styled-components'
-import { PrimaryButton, SecondaryButton } from '../button/button.jsx'
+import {
+  React,
+  Input as NInput,
+  Textarea as NTextarea,
+  Select as NSelect,
+  Text,
+  Section,
+  Form as NForm,
+} from 'nautil'
+import { Button } from '../button/button.jsx'
 import { useSeedKeys } from '../../hooks/seed-keys.js'
-import produce from 'immer'
+import { classnames } from '../../utils'
 
-export const Input = styled.input`
-  padding: 10px;
-  border: #f1f1f1 solid 1px;
-  outline: none;
-  width: ${props => props.width ? props.width + 'px' : 'auto'};
-  flex-grow: ${props => props.width ? 'unset' : 1} !important;
-  ${props => props.sm ? 'padding: 5px; border-top: 0; border-left: 0; border-right: 0;' : ''}
-`
-
-export const Textarea = styled.textarea`
-  padding: 10px;
-  border: #f1f1f1 solid 1px;
-  outline: none;
-  width: ${props => props.width ? props.width + 'px' : 'auto'};
-  flex-grow: ${props => props.width ? 'unset' : 1} !important;
-  height: 1em;
-  min-height: calc(1em + 2px);
-  resize: vertical;
-`
-
-const Selector = (props) => {
-  const { options, value, onChange, placeholder, className } = props
-  return (
-    <select value={value} onChange={onChange} className={className}>
-      <option value="" hidden>{placeholder}</option>
-      {options.map(option => <option key={option.value} value={option.value}>{option.text}</option>)}
-    </select>
-  )
-}
-export const Select = styled(Selector)`
-  padding: 9px 10px;
-  border: #f1f1f1 solid 1px;
-  outline: none;
-  width: ${props => props.with ? props.width + 'px' : 'auto'};
-  flex-grow: ${props => props.width ? 'unset' : 1} !important;
-`
-
-export const Label = styled.label`
-  padding: 10px;
-  text-align: right;
-  width: 160px;
-`
-
-export const FormItem = styled.div`
-  padding: 10px;
-  display: flex;
-  align-items: center;
-
-  ${Input}, ${Textarea}, ${Select} {
-    flex: 1;
+export const Input = NInput.extend(props => {
+  return {
+    stylesheet: [
+      classnames('input'),
+      props.width ? { width: props.width + 'px', flexGrow: 'unset' } : null,
+      props.sm ? { padding: '5px', borderTop: 0, borderLeft: 0, borderRight: 0 } : null,
+    ],
   }
-`
+})
+
+export const Textarea = NTextarea.extend(props => {
+  return {
+    stylesheet: [
+      classnames('textarea'),
+      props.width ? { width: props.width + 'px', flexGrow: 'unset' } : null,
+    ],
+  }
+})
+
+export const Select = NSelect.extend(props => {
+  return {
+    stylesheet: [
+      classnames('select'),
+      props.width ? { width: props.width + 'px', flexGrow: 'unset' } : null,
+    ],
+  }
+})
+
+export const Label = Text.extend({
+  stylesheet: [classnames('label')],
+})
+
+export const Form = NForm.extend({
+  stylesheet: [classnames('form')]
+})
+
+export const FormItem = Section.extend({
+  stylesheet: [classnames('form-item')],
+})
+
 
 export const Form = styled.form`
   width: 100%;

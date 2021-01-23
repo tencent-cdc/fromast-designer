@@ -1,5 +1,7 @@
-import React from 'react'
-import ReactDOM from 'react-dom'
+import './styles/index.less'
+
+import { React } from 'nautil'
+import { unmount, update } from 'nautil/dom'
 import { isString } from 'ts-fns'
 
 import App from './app.jsx'
@@ -27,30 +29,27 @@ export class FormastEditor {
       return this
     }
 
-    ReactDOM.render(
-      <App
-        config={this.config}
-        onSave={(json) => this.emit('save', json)}
-        onReset={() => {
-          this.emit('reset')
-          this.reset()
-        }}
-        onDownload={() => this.emit('download')}
-        json={this.json}
-        onJSONChange={(json) => {
-          this.json = json
-          this.emit('change', json)
-          this.update()
-        }}
-      />,
-      this.el,
-    )
+    update(this.el, <App
+      config={this.config}
+      onSave={(json) => this.emit('save', json)}
+      onReset={() => {
+        this.emit('reset')
+        this.reset()
+      }}
+      onDownload={() => this.emit('download')}
+      json={this.json}
+      onJSONChange={(json) => {
+        this.json = json
+        this.emit('change', json)
+        this.update()
+      }}
+    />)
 
     return this
   }
   unmount() {
     if (this.el) {
-      ReactDOM.unmountComponentAtNode(this.el)
+      unmount(this.el)
     }
     return this
   }

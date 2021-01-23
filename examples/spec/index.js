@@ -1,8 +1,7 @@
 import { createFormastEditor } from 'formast-designer'
 import * as config from './config'
 
-const editor = createFormastEditor(config)
-editor.mount('#form-editor')
+const editor = createFormastEditor(config, '#form-editor')
 
 const json = sessionStorage.getItem('__JSON__')
 if (json) {

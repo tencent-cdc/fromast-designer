@@ -1,0 +1,68 @@
+@import "./_vars.less";
+
+@{NAMESPACE} {
+  &-input {
+    padding: 10px;
+    border: @BORDER;
+    outline: none;
+
+    &--sm {
+      padding: 5px;
+      border-top: 0;
+      border-left: 0;
+      border-right: 0;
+    }
+  }
+
+  &-select {
+    padding: 9px 10px;
+    border: @BORDER;
+    outline: none;
+  }
+
+  &-textarea {
+    padding: 10px;
+    border: @BORDER;
+    outline: none;
+    height: 1em;
+    min-height: calc(1em + 2px);
+    resize: vertical;
+  }
+
+  &-label {
+    padding: 10px;
+    text-align: right;
+    width: 160px;
+  }
+
+  &-form {
+    width: 100%;
+
+    &-item {
+      padding: 10px;
+      display: flex;
+      align-items: center;
+    }
+
+    &-item @{NAMESPACE}-input,
+    &-item @{NAMESPACE}-textarea,
+    &-item @{NAMESPACE}-select {
+      flex: 1;
+    }
+
+    &--aside &-item {
+      flex-wrap: wrap;
+    }
+
+    &--aside @{NAMESPACE}-label {
+      width: 100%;
+      text-align: left;
+      padding-left: 0;
+    }
+
+    &-item--loop {
+      padding: 0;
+      flex-direction: column;
+    }
+  }
+}

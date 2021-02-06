@@ -1,2 +1,7 @@
-export * from './layouts.config.js'
-export * from './materials.config.js'
+import layout from './layouts.config.js'
+import material from './materials.config.js'
+
+export default {
+  layout,
+  material,
+}

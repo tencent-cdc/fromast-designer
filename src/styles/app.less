@@ -1,0 +1,93 @@
+@import "./_vars.less";
+
+@{NAMESPACE} {
+  &-line {
+    display: block;
+    border-bottom: #f1f1f1 solid 1px;
+    margin: 10px 0;
+  }
+
+  &-close {
+    font-size: 1.5em;
+    cursor: pointer;
+    color: #999;
+    background: transparent;
+    border: 0;
+    outline: none;
+
+    &:hover {
+      color: #333;
+    }
+  }
+
+  &-app {
+    color: #515151;
+    flex: 1;
+    height: 100%;
+    max-height: 100vh;
+
+    display: flex;
+    flex-direction: column;
+  }
+  &-app &-button {
+    margin-left: 5px;
+  }
+
+  &-app__top-bar {
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    box-shadow: 0 2px 5px #ccc;
+  }
+
+  &-app__top-buttons {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+  }
+
+  &-app__top-tab {
+    font-size: 1.05em;
+    margin: 0 10px;
+    line-height: 47px;
+    cursor: pointer;
+    border-bottom: transparent solid 3px;
+
+    &--active {
+      color: @PRIMARY_COLOR;
+      border-bottom-color: @PRIMARY_COLOR;
+    }
+  }
+
+  &-content {
+    flex: 1;
+    display: flex;
+    margin-top: 15px;
+    overflow: auto;
+  }
+  &-sidebar {
+    width: 300px;
+    overflow: auto;
+  }
+  &-sidebar--left {
+    border-right: #f1f1f1 solid 1px;
+  }
+  &-sidebar--right {
+    border-left: #f1f1f1 solid 1px;
+    display: flex;
+    flex-direction: column;
+  }
+  &-sidebar--right &-form--aside {
+    flex: 1;
+    overflow: auto;
+  }
+  &-main {
+    flex: 1;
+  }
+  &-sidebar-close {
+    padding: 10px;
+    text-align: right;
+  }
+}

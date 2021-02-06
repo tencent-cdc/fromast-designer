@@ -2,7 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 import Input from '../components/input'
 
-export const materials = {
+export default {
   components: [
     {
       // 左侧列出来时的信息

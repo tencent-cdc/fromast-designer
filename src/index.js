@@ -1,13 +1,11 @@
-import './styles/index.less'
-
-import { React } from 'nautil'
 import { unmount, update } from 'nautil/dom'
-import { isString } from 'ts-fns'
+import { isString, clone } from 'ts-fns'
+import { Popup } from './libs/popup.js'
 
-import App from './app.jsx'
+import App from './app/app.jsx'
 
 export class FormastEditor {
-  constructor(config) {
+  constructor(config = {}) {
     this.emitters = []
     this.config = config
     this.el = null
@@ -29,21 +27,47 @@ export class FormastEditor {
       return this
     }
 
-    update(this.el, <App
-      config={this.config}
-      onSave={(json) => this.emit('save', json)}
-      onReset={() => {
+    update(this.el, App, {
+      config: this.config,
+      onSave: () => this.emit('save', this.getJSON()),
+      onReset: () => {
         this.emit('reset')
-        this.reset()
-      }}
-      onDownload={() => this.emit('download')}
-      json={this.json}
-      onJSONChange={(json) => {
+        this.refresh()
+      },
+      onDownload: () => {
+        const json = clone(this.getJSON())
+        this.emit('download', json)
+        const content = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(json, null, 4))
+        const a = document.createElement('a')
+        a.href = content
+        a.download = 'formast.json'
+        a.click()
+      },
+      onImport: () => {
+        const input = document.createElement('input')
+        input.type = 'file'
+        input.click()
+        input.onchange = (e) => {
+          const file = e.target.files[0]
+          const reader = new FileReader()
+          reader.readAsText(file)
+          reader.onload = (e) => {
+            const text = e.target.result
+            const json = JSON.parse(text)
+            this.emit('import', json)
+            this.setJSON(json)
+            this.refresh()
+            Popup.toast('导入成功！')
+          }
+        }
+      },
+      json: this.json,
+      onJSONChange: (json) => {
         this.json = json
         this.emit('change', json)
         this.update()
-      }}
-    />)
+      },
+    })
 
     return this
   }
@@ -53,7 +77,7 @@ export class FormastEditor {
     }
     return this
   }
-  reset() {
+  refresh() {
     if (this.el) {
       this.unmount()
       this.mount(this.el)
@@ -74,7 +98,6 @@ export class FormastEditor {
 
   setJSON(json) {
     this.json = json
-    this.reset()
   }
   getJSON() {
     return this.json

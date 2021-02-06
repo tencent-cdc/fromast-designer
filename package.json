@@ -13,16 +13,9 @@
   "author": "tisontang",
   "license": "ISC",
   "dependencies": {
-    "@tencent/tdesign-react": "^0.1.0",
-    "immer": "^8.0.1",
-    "nautil": "^0.16.2",
-    "react": "^17.0.1",
-    "react-dom": "^17.0.1",
-    "rxjs": "^6.6.3",
-    "scopex": "^1.2.3",
-    "styled-components": "^5.2.1",
-    "ts-fns": "^9.0.2",
-    "tyshemo": "^10.1.1"
+    "nautil": "^0.16.13",
+    "ts-fns": "^9.0.3",
+    "tyshemo": "^10.1.2"
   },
   "devDependencies": {
     "less": "^4.1.0",

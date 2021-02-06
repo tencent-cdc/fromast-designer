@@ -6,11 +6,12 @@
     border: @BORDER;
     outline: none;
 
-    &--sm {
+    &--small {
       padding: 5px;
       border-top: 0;
       border-left: 0;
       border-right: 0;
+      text-align: right;
     }
   }
 
@@ -38,16 +39,47 @@
   &-form {
     width: 100%;
 
+    ::placeholder {
+      color: #ccc;
+    }
+
     &-item {
       padding: 10px;
       display: flex;
       align-items: center;
+
+      &--rich {
+        display: flex;
+        align-items: flex-start;
+      }
     }
 
     &-item @{NAMESPACE}-input,
     &-item @{NAMESPACE}-textarea,
     &-item @{NAMESPACE}-select {
       flex: 1;
+    }
+
+    &-loop-item {
+      display: flex;
+      align-items: center;
+    }
+
+    &-loop-item__content {
+      flex: 1;
+    }
+
+    &-loop-item__buttons {
+      white-space: nowrap;
+    }
+
+    &-loop-item__content &-item {
+      padding-top: 0;
+      padding-bottom: 0;
+    }
+
+    &-loop-item__content @{NAMESPACE}-label {
+      width: 130px;
     }
 
     &--aside &-item {
@@ -60,9 +92,22 @@
       padding-left: 0;
     }
 
-    &-item--loop {
-      padding: 0;
-      flex-direction: column;
+    &--aside @{NAMESPACE}-input--small {
+      width: 100%;
+      text-align: left;
+    }
+
+    &--aside &-loop {
+      background-color: rgba(200, 200, 200, .1);
+      padding-bottom: 20px;
+    }
+
+    &--aside &-loop-item {
+      display: block;
+    }
+
+    &--aside @{NAMESPACE}-line {
+      display: none;
     }
   }
 }

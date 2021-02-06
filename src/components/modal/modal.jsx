@@ -1,74 +1,12 @@
-import React, { useRef, useEffect, useCallback, useMemo } from 'react'
-import styled from 'styled-components'
-import { PrimaryButton, SecondaryButton } from '../button/button.jsx'
-import { Subject } from 'rxjs'
+import { React, useEffect, useCallback, useMemo, Stream, Section } from 'nautil'
+import { Button } from '../button/button.jsx'
+import { classnames } from '../../utils'
+import { Close } from '../close/close.jsx'
 
-const ModalContainer = styled.div`
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 99;
-  background-color: rgba(0, 0, 0, .2);
-  display: ${props => props.isShow ? 'block' : 'none'};
-`
+export const Modal = React.memo((props) => {
+  const { isShow, onClose, title, children, onCancel, onSubmit, disableCancel, disableClose, keepAlive, width } = props
 
-const ModalBox = styled.div`
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  width: ${props => props.width ? props.width + 'px' : '600px'};
-  background-color: #fff;
-`
-
-const ModalClose = styled.div`
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: #ccc solid 1px;
-  color: #999;
-  border-radius: 50%;
-  cursor: pointer;
-  transition: background-color .2s;
-
-  &:hover {
-    background-color: #f1f1f1;
-  }
-`
-
-const ModalTitle = styled.div`
-  height: 50px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  border-bottom: #f1f1f1 solid 1px;
-`
-
-const ModalContent = styled.div`
-  padding: 40px 20px;
-  max-height: 70vh;
-  overflow: auto;
-`
-
-const ModalFooter = styled(ModalTitle)`
-  padding: 5px 0;
-  font-weight: normal;
-  border-bottom: 0;
-  border-top: #f1f1f1 solid 1px;
-`
-
-export function Modal(props) {
-  const { isShow, onClose, title, children, onCancel, onSubmit, disabelCancel, keepAlive, width } = props
-
-  const stream$ = useMemo(() => new Subject(), [isShow])
+  const stream$ = useMemo(() => new Stream(), [isShow])
 
   const handleSubmit = useCallback(() => {
     stream$.next('submit')
@@ -84,13 +22,13 @@ export function Modal(props) {
 
   useEffect(() => {
     stream$.subscribe((type) => {
-      if (type === 'submit') {
+      if (type === 'submit' && onSubmit) {
         onSubmit()
       }
-      else if (type === 'cancel') {
+      else if (type === 'cancel' && onCancel) {
         onCancel()
       }
-      else if (type === 'close') {
+      else if (type === 'close' && onClose) {
         onClose()
       }
     })
@@ -98,17 +36,17 @@ export function Modal(props) {
   }, [isShow])
 
   return (
-    <ModalContainer isShow={isShow}>
-      <ModalBox width={width}>
-        <ModalClose onClick={handleClose}>&times;</ModalClose>
-        {title ? <ModalTitle>{title}</ModalTitle> : null}
-        <ModalContent>{isShow || keepAlive ? typeof children === 'function' ? children(stream$) : children : null}</ModalContent>
-        <ModalFooter>
-          {!disabelCancel ? <SecondaryButton lg onClick={handleCancel}>取消</SecondaryButton> : null}
-          <PrimaryButton lg onClick={handleSubmit}>确定</PrimaryButton>
-        </ModalFooter>
-      </ModalBox>
-    </ModalContainer>
+    <Section stylesheet={[classnames('modal', isShow ? 'modal--show' : 'modal--hidden')]}>
+      <Section stylesheet={[classnames('modal-container'), width ? { width } : null]}>
+        {!disableClose ? <Close stylesheet={[classnames('modal-close')]} onHit={handleClose} /> : null}
+        {title ? <Section stylesheet={[classnames('modal-title')]}>{title}</Section> : null}
+        <Section stylesheet={[classnames('modal-content')]}>{isShow || keepAlive ? typeof children === 'function' ? children(stream$) : children : null}</Section>
+        <Section stylesheet={[classnames('modal-footer')]}>
+          {!disableCancel ? <Button secondary large onHit={handleCancel}>取消</Button> : null}
+          <Button primary large onHit={handleSubmit}>确定</Button>
+        </Section>
+      </Section>
+    </Section>
   )
-}
+})
 export default Modal

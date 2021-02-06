@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom'
 
 import CatList from '../components/cat-list'
 
-export const layouts = {
+export default {
   // 必须的布局配置，不传会使用系统的
   form: {
     // 左侧列出来时的信息

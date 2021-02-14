@@ -1,13 +1,15 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import Input from '../components/input'
+import { VALUE_TYPES } from '../../../src/config/constants.js'
+import { EditOutlined } from '@ant-design/icons'
 
 export default {
-  components: [
+  items: [
     {
       // 左侧列出来时的信息
       title: '单行文本输入框',
-      icon: 'input',
+      icon: EditOutlined,
 
       // 右侧用于配置该组件的信息
       /**
@@ -29,22 +31,28 @@ export default {
       props: {
         value: {
           title: '值',
-          type: 'text', // type为配置区域输入框的类型
+          types: [VALUE_TYPES.STR, VALUE_TYPES.EXP],
         },
         onChange: {
-          type: 'text',
-          fn: true, // 代表该配置为一个函数
+          types: [VALUE_TYPES.FN],
         },
         placeholder: {
-          type: 'text',
+          types: [VALUE_TYPES.STR, VALUE_TYPES.EXP],
         },
         label: {
           title: '显示名',
-          type: 'text',
+          types: [VALUE_TYPES.STR, VALUE_TYPES.EXP],
         },
         hidden: {
           title: '是否隐藏',
-          type: 'text',
+          types: [VALUE_TYPES.EXP],
+        },
+        required: {
+          title: '是否必填',
+          types: [VALUE_TYPES.EXP],
+        },
+        errors: {
+          types: [VALUE_TYPES.EXP],
         },
       },
 

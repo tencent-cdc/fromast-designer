@@ -57,6 +57,9 @@ export class ModelDesigner extends Component {
             />
           } />
         </Switch>
+        {/* <Section stylesheet={[classnames('sidebar sidebar--right')]}>
+          <pre className={classnames('model-designer__previewer')}>{JSON.stringify(modelJSON, null, 4)}</pre>
+        </Section> */}
       </Section>
     )
   }

@@ -1,0 +1,113 @@
+@import "./_vars.less";
+
+.formast {
+  &__form-item {
+    @{NAMESPACE}__drop-designer {
+      flex-direction: row;
+      overflow: hidden;
+
+      &__row:last-child {
+        flex: unset;
+      }
+
+      &__content {
+        flex: 1;
+        margin-left: -20px;
+        border-left: rgba(183, 214, 250, 0.3) solid 1px;
+        margin-bottom: 15px;
+
+        &:nth-child(2) {
+          border-left: 0;
+        }
+      }
+      &__dropbox:last-child {
+        margin-left: -20px;
+      }
+
+      @{NAMESPACE}__drop-box {
+        min-width: 20px;
+        margin-bottom: 15px;
+
+        &--over {
+          min-width: 120px;
+        }
+      }
+
+      &__item {
+        border-bottom: 0;
+      }
+      &__item &__item {
+        border-right: rgba(183, 214, 250, 0.3) solid 1px;
+      }
+
+      &__dropbox + @{NAMESPACE}__drag-box,
+      &__dropbox + @{NAMESPACE}__drag-box--outer {
+        margin-top: 0;
+      }
+      @{NAMESPACE}__drop-box--over + @{NAMESPACE}__drag-box,
+      @{NAMESPACE}__drop-box--over + @{NAMESPACE}__drag-box--outer {
+        margin-left: 0;
+      }
+      @{NAMESPACE}__drop-box--over {
+        margin-left: 0;
+      }
+
+      &__dropbox--only {
+        flex: 1 !important;
+        margin: 0 !important;
+        min-height: 30px;
+      }
+
+      &__item--selected {
+        border: #0b67cf solid 1px;
+      }
+    }
+  }
+  &__form-cell {
+    @{NAMESPACE}__drop-designer {
+      flex-direction: column;
+
+      &__row:last-child {
+        flex: 1;
+      }
+
+      &__item {
+        margin-bottom: 15px;
+        border-bottom: rgba(183, 214, 250, 0.3) solid 1px;
+      }
+
+      @{NAMESPACE}__drop-box {
+        min-width: 100%;
+        min-height: 20px;
+        margin-bottom: 0;
+
+        &--over {
+          min-width: auto;
+          min-height: 40px;
+        }
+      }
+
+      &__content {
+        margin-left: 0;
+        margin-bottom: 0;
+      }
+
+      &__item {
+        margin: 5px 0;
+      }
+
+      &__dropbox + @{NAMESPACE}__drag-box,
+      &__dropbox + @{NAMESPACE}__drag-box--outer {
+        margin-top: -20px;
+      }
+      @{NAMESPACE}__drop-box--over + @{NAMESPACE}__drag-box,
+      @{NAMESPACE}__drop-box--over + @{NAMESPACE}__drag-box--outer {
+        margin-top: 0;
+      }
+
+      &__item--selected {
+        border: #0b67cf solid 1px;
+      }
+    }
+  }
+}

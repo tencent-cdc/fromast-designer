@@ -5,7 +5,7 @@ import { Loader } from 'tyshemo'
 export function createClassNames(config = {}) {
   const { namespace, module: cssModule } = config
   const get = (item) => {
-    const classname = namespace ? `${namespace}-${item}` : item
+    const classname = namespace ? `${namespace}__${item}` : item
     if (cssModule && classname in cssModule) {
       return cssModule[classname]
     }

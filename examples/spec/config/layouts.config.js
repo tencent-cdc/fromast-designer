@@ -38,7 +38,7 @@ export default {
   },
 
   // 自定义布局组件
-  components: [
+  items: [
     {
       name: 'cat-list', // 唯一标识名，在 needs 中可以被使用
 

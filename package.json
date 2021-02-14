@@ -14,7 +14,7 @@
   "license": "ISC",
   "dependencies": {
     "@ant-design/icons": "^4.5.0",
-    "@tencent/formast": "0.0.9",
+    "@tencent/formast": "0.0.11",
     "nautil": "^0.16.14",
     "react-dnd": "^11.1.3",
     "react-dnd-html5-backend": "^11.1.3",

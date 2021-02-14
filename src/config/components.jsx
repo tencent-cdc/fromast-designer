@@ -188,8 +188,8 @@ export default {
       ],
     },
     {
-      id: 'advanced',
-      title: '高级组件',
+      id: 'layout',
+      title: '布局组件',
       items: [
         FormGroupLayout,
         FormItemLayout,

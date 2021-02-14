@@ -7,7 +7,7 @@ const DND_TYPES = {
 }
 
 export function DragBox(props) {
-  const { type = DND_TYPES.BASIC, children, data, canDrag, beginDrag, className, render } = props
+  const { type = DND_TYPES.BASIC, children, data, canDrag, beginDrag, endDrag, className, render } = props
   const [, drag, preview] = useDrag({
     item: { type, data },
     canDrag(monitor) {
@@ -17,6 +17,10 @@ export function DragBox(props) {
     begin(monitor) {
       const cursor = monitor.getClientOffset()
       beginDrag && beginDrag(data, cursor)
+    },
+    end(_, monitor) {
+      const cursor = monitor.getClientOffset()
+      endDrag && endDrag(data, cursor)
     },
   })
 

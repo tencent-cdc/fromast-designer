@@ -21,6 +21,7 @@ export class ComponentsDesigner extends Component {
             onChange={this.handleChange}
             onSelect={this.handleSelect}
             selected={this.state.selected}
+            max={1}
           />
           <Section stylesheet={[classnames('components-designer__settings')]}>xxx</Section>
         </Section>

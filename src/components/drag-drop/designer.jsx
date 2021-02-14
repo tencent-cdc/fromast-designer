@@ -130,12 +130,15 @@ export class DropDesigner extends Component {
     }, 32)
   }
   canDrop = (source) => {
-    const { item } = this.props
+    const { item, max } = this.props
     if (item && item.allows) {
       return item.allows.includes(source.id)
     }
     else if (source.needs) {
       return item ? source.needs.includes(item.id) : false
+    }
+    else if (max && !this.state.move) {
+      return this.items.filter(item => !!item).length < max
     }
     else {
       return true
@@ -196,6 +199,7 @@ export class DropDesigner extends Component {
               type={type}
               data={item.data}
               beginDrag={() => this.setState({ move: i })}
+              endDrag={() => this.setState({ move: null })}
               className={classnames('drop-designer__row drop-designer__content')}
               render={(drag) => {
                 return (

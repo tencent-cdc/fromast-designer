@@ -1,6 +1,6 @@
 import styles from '../styles/index.less'
-import { isArray, getObjectHash, isUndefined } from 'ts-fns'
-import { Loader } from 'tyshemo'
+import { isArray, getObjectHash, isUndefined, isString } from 'ts-fns'
+import { generateModel } from '@tencent/formast'
 
 export function createClassNames(config = {}) {
   const { namespace, module: cssModule } = config
@@ -37,7 +37,7 @@ export function createGlobalModelScope() {
     }
     scope.hash = hash
 
-    const Model = new Loader().parse(modelJSON)
+    const Model = generateModel(modelJSON)
     const model = new Model()
     scope.model = model
   }
@@ -51,31 +51,10 @@ export function createGlobalModelScope() {
 export const classnames = createClassNames({ namespace: 'formast-designer', module: styles })
 export const globalModelScope = createGlobalModelScope()
 
-
-export function parseAttr(str) {
-  const matched = str.match(/([a-zA-Z0-9_$]+)(\((.*?)\))?/)
-  if (!matched) {
-    return [str]
-  }
-
-  const method = matched[1]
-  if (!method) {
-    return [str]
-  }
-
-  const m = matched[3]
-  if (isUndefined(m)) {
-    return [method]
-  }
-
-  // empty string, i.e. `required()`
-  if (!m) {
-    return [method, []]
-  }
-
-  const s = m || ''
-  const none = void 0
-  const params = s.split(',').map(item => item.trim() || none)
-
-  return [method, params]
+export function parseKey(str) {
+  const matched = str.match(/([a-zA-Z0-9_$]+)(\((.*?)\))?(!(.*))?/)
+  const [_, name, _p, _params, _m, _macro] = matched
+  const params = isString(_params) ? _params.split(',').map(item => item.trim()).filter(item => !!item) : void 0
+  const macro = _m ? _macro || 'jsx' : void 0
+  return [name, params, macro]
 }

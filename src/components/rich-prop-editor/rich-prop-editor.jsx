@@ -19,10 +19,10 @@ export function RichPropEditor(props) {
         if (data.type !== VALUE_TYPES.FN) {
           data.params = ''
         }
-      }))} />
-      {data.type === VALUE_TYPES.FN ? <Input width="80px" placeholder="参数" value={data.params} onChange={(e) => onChange(produce(data, data => { data.params = e.target.value }))} /> : null}
-      {data.type === VALUE_TYPES.STR ? <Input value={data.value} onChange={(e) => onChange(produce(data, data => { data.value = e.target.value }))} /> : null}
-      {data.type > VALUE_TYPES.STR ? <Textarea value={data.value} onChange={(e) => onChange(produce(data, data => { data.value = e.target.value }))} /> : null}
+      }))} disabled={data.disabled} />
+      {data.type === VALUE_TYPES.FN ? <Input width="80px" placeholder="参数" value={data.params} onChange={(e) => onChange(produce(data, data => { data.params = e.target.value }))} disabled={data.disabled} /> : null}
+      {data.type === VALUE_TYPES.STR ? <Input value={data.value} onChange={(e) => onChange(produce(data, data => { data.value = e.target.value }))} disabled={data.disabled} /> : null}
+      {data.type > VALUE_TYPES.STR ? <Textarea value={data.value} onChange={(e) => onChange(produce(data, data => { data.value = e.target.value }))} disabled={data.disabled} /> : null}
     </>
   )
 }

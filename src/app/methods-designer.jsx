@@ -3,7 +3,7 @@ import { Button } from '../components/button/button.jsx'
 import { Popup } from '../libs/popup.js'
 import { Modal } from '../components/modal/modal.jsx'
 import { Form, FormItem, Label, Input, Textarea } from '../components/form/form.jsx'
-import { classnames, parseAttr } from '../utils'
+import { classnames, parseKey } from '../utils'
 import { Confirm } from '../components/confirm/confirm.jsx'
 
 export class MethodsDesigner extends Component {
@@ -58,7 +58,7 @@ export class MethodsDesigner extends Component {
   handleEditMethod = (method) => {
     const { methodsJSON } = this.attrs
     const fn = methodsJSON[method]
-    const [name, params] = parseAttr(method)
+    const [name, params] = parseKey(method)
     this.setState({
       form: {
         name,

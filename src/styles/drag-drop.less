@@ -34,6 +34,8 @@
     background-color: #f1f1f1;
     border: transparent solid 1px;
     font-size: .9em;
+    display: flex;
+    align-items: center;
 
     &:hover {
       background-color: #d7e9fd;
@@ -43,15 +45,16 @@
   &__source-item__text {
     margin-left: 5px;
   }
+  &__source-item__id {
+    margin-left: 5px;
+    color: #bbb;
+    font-size: .8em;
+  }
 }
 @{NAMESPACE}__drop-designer {
   display: flex;
   flex-direction: column;
   overflow: auto;
-
-  & & {
-    margin: 10px;
-  }
 
   &__row:last-child {
     flex: 1;
@@ -60,12 +63,31 @@
   @{NAMESPACE}__drop-box {
     position: relative;
     z-index: 5;
-    min-height: 20px;
+    min-height: 10px;
     transition: min-height .2s, min-width .2s, background-color .2s, height .2s, width .2s;
 
     &--over {
       min-height: 60px;
     }
+  }
+
+  &__dropbox + @{NAMESPACE}__drag-box,
+  &__dropbox + @{NAMESPACE}__drag-box--outer {
+    margin-top: -10px;
+  }
+  @{NAMESPACE}__drop-box--over + @{NAMESPACE}__drag-box,
+  @{NAMESPACE}__drop-box--over + @{NAMESPACE}__drag-box--outer {
+    margin-top: 0;
+  }
+  &__dropbox--only {
+    flex: 1;
+  }
+
+  /////// 嵌套 ////////
+
+  & & {
+    min-height: 40px;
+    margin: 0 10px 15px 0;
   }
 
   &__item {
@@ -82,12 +104,12 @@
     bottom: 5px;
     right: 5px;
     z-index: 6;
-    font-size: .8em;
     display: flex;
     align-items: center;
 
-    span {
+    & > span {
       margin-left: 5px;
+      font-size: .8em;
     }
   }
   &__item__move {
@@ -102,12 +124,118 @@
     border: #0b67cf solid 1px;
   }
 
-  &__dropbox + @{NAMESPACE}__drag-box,
-  &__dropbox + @{NAMESPACE}__drag-box--outer {
-    margin-top: -20px;
+  &__item--horizontal,
+  &__item--horizontal &__item--vertical &__item--horizontal {
+    @{NAMESPACE}__drop-designer {
+      flex-direction: row;
+      overflow: hidden;
+
+      &__row:last-child {
+        flex: unset;
+      }
+
+      &__content {
+        flex: 1;
+        margin-left: -10px;
+        border-left: rgba(183, 214, 250, 0.3) solid 1px;
+        margin-bottom: 15px;
+
+        &:nth-child(2) {
+          border-left: 0;
+        }
+      }
+      &__dropbox:last-child {
+        margin-left: -10px;
+      }
+
+      @{NAMESPACE}__drop-box {
+        min-width: 10px;
+        margin-bottom: 15px;
+
+        &--over {
+          min-width: 120px;
+        }
+      }
+
+      &__item {
+        border-bottom-color: transparent;
+      }
+      &__item &__item {
+        border-right: rgba(183, 214, 250, 0.3) solid 1px;
+      }
+
+      &__dropbox + @{NAMESPACE}__drag-box,
+      &__dropbox + @{NAMESPACE}__drag-box--outer {
+        margin-top: 0;
+      }
+      @{NAMESPACE}__drop-box--over + @{NAMESPACE}__drag-box,
+      @{NAMESPACE}__drop-box--over + @{NAMESPACE}__drag-box--outer {
+        margin-left: 0;
+      }
+      @{NAMESPACE}__drop-box--over {
+        margin-left: 0;
+      }
+
+      &__dropbox--only {
+        flex: 1 !important;
+        margin: 0 !important;
+        min-height: 30px;
+      }
+
+      &__item--selected {
+        border: #0b67cf solid 1px;
+      }
+    }
   }
-  @{NAMESPACE}__drop-box--over + @{NAMESPACE}__drag-box,
-  @{NAMESPACE}__drop-box--over + @{NAMESPACE}__drag-box--outer {
-    margin-top: 0;
+  &__item--horizontal &__item--vertical {
+    @{NAMESPACE}__drop-designer {
+      flex-direction: column;
+      margin-bottom: 0;
+      padding-bottom: 15px;
+
+      &__row:last-child {
+        flex: 1;
+      }
+
+      &__item {
+        margin-bottom: 15px;
+        border-bottom: rgba(183, 214, 250, 0.3) solid 1px;
+      }
+
+      @{NAMESPACE}__drop-box {
+        min-width: 100%;
+        min-height: 10px;
+        margin-bottom: 0;
+
+        &--over {
+          min-width: auto;
+          min-height: 40px;
+        }
+      }
+
+      &__content {
+        margin-left: 0;
+        margin-bottom: 0;
+        border-left: 0;
+      }
+
+      &__item {
+        margin: 0;
+      }
+
+      &__dropbox + @{NAMESPACE}__drag-box,
+      &__dropbox + @{NAMESPACE}__drag-box--outer {
+        margin-top: -10px;
+      }
+      @{NAMESPACE}__drop-box--over + @{NAMESPACE}__drag-box,
+      @{NAMESPACE}__drop-box--over + @{NAMESPACE}__drag-box--outer {
+        margin-top: 0;
+      }
+
+      &__item--selected {
+        border: #0b67cf solid 1px;
+      }
+    }
   }
+
 }

@@ -1,13 +1,80 @@
 @import "./_vars.less";
 
 @{NAMESPACE}__components-designer {
+  &__buttons {
+    padding: 5px;
+    text-align: right;
+  }
   &__canvas {
     width: 100%;
-    height: 60vh;
-    background: #f9f9f9;
+    height: 30vh;
+    background-image: linear-gradient(90deg, rgba(180, 180, 180, 0.15) 10%, rgba(0, 0, 0, 0) 10%),
+                      linear-gradient(rgba(180, 180, 180, 0.15) 10%, rgba(0, 0, 0, 0) 10%);
+    background-size: 10px 10px;
+    background-position: -1px 0;
+    border-bottom: solid 1px rgba(180, 180, 180, 0.15);
   }
   @{NAMESPACE}__sidebar--right @{NAMESPACE}__drag-box {
     width: 50%;
     float: left;
+  }
+  &__settings {
+    height: calc(70vh - 105px);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+
+    @{NAMESPACE}__label {
+      width: 80px;
+    }
+
+    &-menus {
+      display: flex;
+      align-items: flex-start;
+    }
+    &-menu {
+      margin: 10px;
+      margin-right: 0;
+      font-size: 12px;
+      cursor: pointer;
+
+      &--active {
+        color: @PRIMARY_COLOR_DARK;
+        border-bottom: @PRIMARY_COLOR_DARK solid 3px;
+      }
+    }
+  }
+  &__setting {
+    flex: 1;
+    overflow: auto;
+  }
+
+  &__component-name {
+    padding: 5px 10px;
+    margin-left: 5px;
+    border-bottom: #f1f1f1 solid 1px;
+    cursor: pointer;
+    transition: background-color .2s;
+
+    &:hover {
+      background-color: #f9f9f9;
+    }
+
+    &--active {
+      background-color: #e4f1ff;
+    }
+
+    & + button {
+      margin-top: 20px;
+    }
+  }
+
+  &__empty {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4em;
+    color: #ccc;
   }
 }

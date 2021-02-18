@@ -1,64 +1,70 @@
-import { React, Component, Section, Text, createRef, Each } from 'nautil'
+import { React, Component, Section, Text, createRef, Each, ifexist, nullable, If } from 'nautil'
 import { DropBox, DragBox } from './drag-drop.jsx'
-import { classnames } from '../../utils'
+import { classnames, parseKey } from '../../utils'
 import DefaultComponentsConfig from '../../config/components.jsx'
 import { DndProvider } from 'react-dnd'
 import { HTML5Backend } from 'react-dnd-html5-backend'
 import { DeleteOutlined, SettingOutlined, MenuOutlined } from '@ant-design/icons'
-import { createRandomString } from 'ts-fns'
+import { createRandomString, each, isString } from 'ts-fns'
+import { Confirm } from '../confirm/confirm.jsx'
+import { VALUE_TYPES } from '../../config/constants.js'
+
+function getConfig(config) {
+  const groupSet = {}
+  const groups = []
+
+  DefaultComponentsConfig.groups.forEach((group) => {
+    const { id } = group
+    groupSet[id] = group
+    groups.push(id)
+  })
+
+  if (config.groups) {
+    config.groups.forEach((group) => {
+      const { id } = group
+
+      if (groupSet[id]) {
+        const itemSet = {}
+        const itemIds = []
+
+        groupSet[id].items.forEach((item) => {
+          itemIds.push(item.id)
+          itemSet[item.id] = item
+        })
+
+        if (group.items) {
+          group.items.forEach((item) => {
+            if (!itemSet[item.id]) {
+              itemIds.push(item.id)
+            }
+            itemSet[item.id] = item
+          })
+        }
+
+        groupSet[id] = {
+          ...groupSet[id],
+          ...group,
+          items,
+        }
+      }
+      else {
+        groupSet[id] = group
+        groups.push(id)
+      }
+    })
+  }
+
+  return {
+    ...DefaultComponentsConfig,
+    ...config,
+    groups: groups.map((id) => groupSet[id]),
+  }
+}
 
 export class DragDesigner extends Component {
   getConfig() {
     const { config } = this.props
-    const groupSet = {}
-    const groups = []
-
-    DefaultComponentsConfig.groups.forEach((group) => {
-      const { id } = group
-      groupSet[id] = group
-      groups.push(id)
-    })
-
-    if (config.groups) {
-      config.groups.forEach((group) => {
-        const { id } = group
-
-        if (groupSet[id]) {
-          const itemSet = {}
-          const itemIds = []
-
-          groupSet[id].items.forEach((item) => {
-            itemIds.push(item.id)
-            itemSet[item.id] = item
-          })
-
-          if (group.items) {
-            group.items.forEach((item) => {
-              if (!itemSet[item.id]) {
-                itemIds.push(item.id)
-              }
-              itemSet[item.id] = item
-            })
-          }
-
-          groupSet[id] = {
-            ...groupSet[id],
-            ...group,
-            items,
-          }
-        }
-        else {
-          groupSet[id] = group
-          groups.push(id)
-        }
-      })
-    }
-
-    return {
-      ...DefaultComponentsConfig,
-      ...config,
-      groups: groups.map((id) => groupSet[id]),
-    }
+    return getConfig(config)
   }
   render() {
     const { groups } = this.getConfig()
@@ -69,12 +75,13 @@ export class DragDesigner extends Component {
             <Section key={group.id} stylesheet={[classnames('drag-designer__source-group')]}>
               <Section stylesheet={[classnames('drag-designer__source-group__title')]}><Text>{group.title}</Text></Section>
               <Each of={group.items} render={(item) => {
-                const { icon: Icon, title } = item
+                const { icon: Icon, title, id } = item
                 return (
-                  <DragBox key={title} data={item}>
+                  <DragBox key={title} source={item}>
                     <Section stylesheet={[classnames('drag-designer__source-item')]}>
                       <Icon />
                       <Text stylesheet={[classnames('drag-designer__source-item__text')]}>{title}</Text>
+                      <Text stylesheet={[classnames('drag-designer__source-item__id')]}>{id}</Text>
                     </Section>
                   </DragBox>
                 )
@@ -87,13 +94,218 @@ export class DragDesigner extends Component {
   }
 }
 
+export class Monitor {
+  constructor({ el, source, selected, ...options }) {
+    this.id = createRandomString(8)
+    this.el = el
+    this.source = source
+    this.props = {}
+    this.options = options
+    this.children = []
+    this.elements = []
+
+    if (source.props && source.props.length) {
+      this.setInitProps(source.props)
+    }
+  }
+  DropBox = (props) => {
+    const { getPassedProps } = this.options
+    const { selected, config, onSelect, onRemove, onChange, expParser } = getPassedProps()
+    return (
+      <DndProvider backend={HTML5Backend}>
+        <DropDesigner
+          {...props}
+          config={config}
+          source={this.source}
+          type={this.id}
+          selected={selected}
+          expParser={expParser}
+          elements={this.elements}
+          onSelect={onSelect}
+          onRemove={onRemove}
+          onChange={(children) => {
+            this.children = children
+            onChange()
+          }}
+        />
+      </DndProvider>
+    )
+  }
+  getComputedProps() {
+    const res = {}
+    const { getPassedProps } = this.options
+    const { expParser } = getPassedProps()
+    if (!expParser) {
+      return res
+    }
+
+    const props = this.props
+    const keys = Object.keys(props)
+    // 当表达式输入没有输入完时，可能会保持，这时通过一个try..catch保证正常渲染不报错
+    const tryGet = (get, defaultValue) => {
+      try {
+        return get()
+      }
+      catch (e) {
+        return defaultValue
+      }
+    }
+    keys.forEach((key) => {
+      const { type, value, params } = props[key]
+      if (type <= 0) {
+        res[key] = value
+      }
+      else if (type === 1) {
+        res[key] = tryGet(() => expParser(value), value)
+      }
+      else if (type === 2) {
+        const items = params.split(',').filter(item => !!item)
+        res[key] = (...args) => {
+          const locals = {}
+          args.forEach((arg, i) => {
+            if (items[i])
+            locals[items[i]] = arg
+          })
+          return tryGet(() => expParser(value, locals), value)
+        }
+      }
+    })
+    return res
+  }
+  setInitProps(props) {
+    props.forEach((item) => {
+      const { key, value = '', types, disabled } = item
+      const prop = {
+        type: types ? types[0] : VALUE_TYPES.STR,
+        value,
+        params: '',
+        disabled,
+      }
+      this.props[key] = prop
+    })
+  }
+  setExpProps(props) {
+    const source = this.source
+    const isExp = (str) => {
+      return str[0] === '{' && str[str.length - 1] === '}'
+    }
+    const getExp = (str) => {
+      return str.substring(1, str.length - 1)
+    }
+
+    each(props, (value, key) => {
+      const sourceProp = source.props.find(item => item.key === key)
+      if (!sourceProp) {
+        return
+      }
+
+      const [name, params] = parseKey(key)
+      if (params) {
+        this.props[name] = {
+          type: VALUE_TYPES.FN,
+          value: isExp(value) ? getExp(value) : value,
+          params: params.join(','),
+          disabled: sourceProp.disabled,
+        }
+      }
+      else if (isExp(value)) {
+        this.props[name] = {
+          type: VALUE_TYPES.EXP,
+          value: getExp(value),
+          params: '',
+          disabled: sourceProp.disabled,
+        }
+      }
+      else {
+        this.props[name] = {
+          type: VALUE_TYPES.STR,
+          value,
+          params: '',
+          disabled: sourceProp.disabled,
+        }
+      }
+    })
+  }
+}
+
 export class DropDesigner extends Component {
+  static props = {
+    config: Object,
+    elements: ifexist(Array),
+    source: ifexist(Object),
+    type: ifexist(String),
+    selected: ifexist(nullable(Monitor)),
+    expParser: ifexist(Function),
+    max: ifexist(Number),
+    onSelect: true,
+    onRemove: true,
+    onChange: true,
+  }
+
   state = {
     move: null,
   }
   items = [null]
 
-  handleDragDrop = (i, data) => {
+  onMounted() {
+    const { elements, config } = this.props
+    if (!elements || !elements.length) {
+      return
+    }
+
+    const sourceConfig = getConfig(config)
+    const { groups } = sourceConfig
+
+    const sources = []
+    groups.forEach(({ items }) => {
+      items.forEach((item) => sources.push(item))
+    })
+
+    const createAndPutItems = (elements) => {
+      return elements.map((element) => {
+        const [id, props, ...children] = element
+        const source = sources.find(item => item.id === id)
+
+        const item = this.createAndPutItem(this.items.length - 1, source)
+        item.setExpProps(props)
+        item.elements = children
+        return item
+      })
+    }
+    createAndPutItems(elements)
+    this.update()
+
+    setTimeout(() => {
+      this.handleChange()
+      this.items.forEach((item) => {
+        if (!item) {
+          return
+        }
+        this.mountItem(item)
+      })
+    }, 32)
+  }
+
+  createAndPutItem(i, source) {
+    const el = createRef()
+    const item = new Monitor({
+      el,
+      source,
+      getPassedProps: () => {
+        return {
+          ...this.props,
+          onChange: () => {
+            this.handleChange()
+          },
+        }
+      },
+    })
+
+    this.items.splice(i + 1, 0, item, null)
+    return item
+  }
+
+  handleDragDrop = (i, source) => {
     const { move } = this.state
     if (move !== null) {
       const reset = () => this.setState({ move: null })
@@ -111,31 +323,24 @@ export class DropDesigner extends Component {
       return
     }
 
-    const el = createRef()
-    const monitor = {
-      DropBox: (props) => {
-        const { config, selected, onSelect } = this.props
-        return (
-          <DndProvider backend={HTML5Backend}>
-            <DropDesigner {...props} config={config} item={item.data} type={item.id} onSelect={onSelect} selected={selected} />
-          </DndProvider>
-        )
-      },
-    }
-    const item = { id: createRandomString(8), el, data, props: {}, monitor }
-    this.items.splice(i + 1, 0, item, null)
+    const item = this.createAndPutItem(i, source)
     this.update()
+
     setTimeout(() => {
+      this.handleChange()
       this.mountItem(item)
     }, 32)
   }
-  canDrop = (source) => {
-    const { item, max } = this.props
-    if (item && item.allows) {
-      return item.allows.includes(source.id)
+  canDrop = (current) => {
+    const { source, max } = this.props
+    if (source && source.allows) {
+      return source.allows.includes(current.id)
     }
-    else if (source.needs) {
-      return item ? source.needs.includes(item.id) : false
+    else if (current.needs) {
+      return source ? current.needs.includes(source.id) : false
+    }
+    else if (source && source.max&& !this.state.move) {
+      return this.items.filter(item => !!item).length < source.max
     }
     else if (max && !this.state.move) {
       return this.items.filter(item => !!item).length < max
@@ -145,10 +350,16 @@ export class DropDesigner extends Component {
     }
   }
   mountItem(item) {
-    item.data.mount(item.el.current, item.props, item.monitor)
+    item.source.mount(item.el.current, item)
   }
   updateItem(item) {
-    item.data.update(item.el.current, item.props, item.monitor)
+    item.source.mount(item.el.current, item)
+  }
+  handleChange = () => {
+    const { onChange } = this.props
+    if (onChange) {
+      onChange(this.items.filter(item => !!item))
+    }
   }
   handleRemove = (i) => {
     const item = this.items[i]
@@ -157,13 +368,17 @@ export class DropDesigner extends Component {
     }
 
     // 卸载DOM
-    item.data.unmount(item.el.current)
+    item.source.unmount(item.el.current)
     this.items.splice(i, 2)
     this.update()
+
+    const { onRemove } = this.props
+    onRemove && onRemove(item)
+    this.handleChange()
   }
-  handleEdit = (selected) => {
+  handleEdit = (item) => {
     const { onSelect } = this.props
-    onSelect && onSelect(selected)
+    onSelect && onSelect(item)
   }
   onUpdated() {
     this.items.forEach((item) => {
@@ -197,20 +412,20 @@ export class DropDesigner extends Component {
             <DragBox
               key={item.id}
               type={type}
-              data={item.data}
+              source={item.source}
               beginDrag={() => this.setState({ move: i })}
               endDrag={() => this.setState({ move: null })}
               className={classnames('drop-designer__row drop-designer__content')}
               render={(drag) => {
                 return (
-                  <Section stylesheet={[classnames('drop-designer__item', selected && selected.id === item.id ? 'drop-designer__item--selected' : '')]}>
-                    <Section stylesheet={[classnames('drop-designer__item__actions')]}>
-                      <Text stylesheet={[classnames('drop-designer__item__name')]}>{item.data.title}</Text>
-                      <span className={classnames('drop-designer__item__move')} ref={drag}><MenuOutlined /></span>
-                      <SettingOutlined onClick={() => this.handleEdit(item)} />
-                      <DeleteOutlined onClick={() => this.handleRemove(i)} />
-                    </Section>
+                  <Section stylesheet={[classnames('drop-designer__item', selected && selected.id === item.id ? 'drop-designer__item--selected' : '', item.source.direction === 'h' ? 'drop-designer__item--horizontal' : 'drop-designer__item--vertical')]}>
                     <div ref={item.el}></div>
+                    <Section stylesheet={[classnames('drop-designer__item__actions')]}>
+                      <Text stylesheet={[classnames('drop-designer__item__name')]}>{item.source.title}</Text>
+                      <span className={classnames('drop-designer__item__move')} ref={drag}><MenuOutlined /></span>
+                      <If is={!!item.source.props && item.source.props.length > 0} render={() => <SettingOutlined onClick={() => this.handleEdit(item)} />} />
+                      <Confirm trigger={(show) => <DeleteOutlined onClick={show} />} onSubmit={() => this.handleRemove(i)} content="确定删除吗？" />
+                    </Section>
                   </Section>
                 )
               }}

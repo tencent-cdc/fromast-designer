@@ -1,7 +1,7 @@
 import { React } from 'nautil'
 import { unmount, render } from 'nautil/dom'
 import { FormastComponents } from '@tencent/formast/react'
-import { EditOutlined, FormOutlined, GroupOutlined, AppstoreOutlined, BlockOutlined } from '@ant-design/icons'
+import { EditOutlined, FormOutlined, GroupOutlined, AppstoreOutlined, BlockOutlined, FieldBinaryOutlined } from '@ant-design/icons'
 import { VALUE_TYPES } from './constants.js'
 
 const { Input, Textarea, FormGroup, FormItem, FormCell } = FormastComponents
@@ -15,7 +15,9 @@ const InputTextLayout = {
   props: [
     {
       key: 'type',
+      types: [VALUE_TYPES.STR],
       value: 'text',
+      disabled: true,
     },
     {
       key: 'value',
@@ -47,11 +49,71 @@ const InputTextLayout = {
     },
   ],
 
-  mount(el, props) {
-    render(el, <Input {...props} />)
+  mount(el, monitor) {
+    const props = monitor.getComputedProps()
+    const { placeholder, type } = props
+    render(el, <Input type={type} placeholder={placeholder} />)
   },
-  update(el, props) {
-    render(el, <Input {...props} />)
+  update(el, monitor) {
+    const props = monitor.getComputedProps()
+    const { placeholder, type } = props
+    render(el, <Input type={type} placeholder={placeholder} />)
+  },
+  unmount(el) {
+    unmount(el)
+  },
+}
+
+const InputNumberLayout = {
+  id: 'InputNumber',
+
+  title: '数字',
+  icon: FieldBinaryOutlined,
+
+  props: [
+    {
+      key: 'type',
+      value: 'number',
+    },
+    {
+      key: 'value',
+      title: '值',
+      types: [VALUE_TYPES.EXP],
+    },
+    {
+      key: 'onChange',
+      types: [VALUE_TYPES.FN],
+    },
+    {
+      key: 'placeholder',
+      types: [VALUE_TYPES.STR, VALUE_TYPES.EXP],
+    },
+    {
+      key: 'hidden',
+      title: '是否隐藏',
+      types: [VALUE_TYPES.EXP],
+    },
+    {
+      key: 'required',
+      title: '是否必填',
+      types: [VALUE_TYPES.EXP],
+    },
+    {
+      key: 'disabled',
+      title: '是否禁用',
+      types: [VALUE_TYPES.EXP],
+    },
+  ],
+
+  mount(el, monitor) {
+    const props = monitor.getComputedProps()
+    const { placeholder, type } = props
+    render(el, <Input type={type} placeholder={placeholder} />)
+  },
+  update(el, monitor) {
+    const props = monitor.getComputedProps()
+    const { placeholder, type } = props
+    render(el, <Input type={type} placeholder={placeholder} />)
   },
   unmount(el) {
     unmount(el)
@@ -95,11 +157,15 @@ const TextareaLayout = {
     },
   ],
 
-  mount(el, props) {
-    render(el, <Textarea {...props} />)
+  mount(el, monitor) {
+    const props = monitor.getComputedProps()
+    const { placeholder } = props
+    render(el, <Textarea placeholder={placeholder} />)
   },
-  update(el, props) {
-    render(el, <Textarea {...props} />)
+  update(el, monitor) {
+    const props = monitor.getComputedProps()
+    const { placeholder } = props
+    render(el, <Textarea placeholder={placeholder} />)
   },
   unmount(el) {
     unmount(el)
@@ -114,15 +180,13 @@ const FormGroupLayout = {
 
   allows: ['FormItem'],
 
-  props: [],
-
-  mount(el, props, monitor) {
+  mount(el, monitor) {
     const { DropBox } = monitor
-    render(el, <FormGroup {...props}><DropBox /></FormGroup>)
+    render(el, <FormGroup><DropBox /></FormGroup>)
   },
-  update(el, props, monitor) {
+  update(el, monitor) {
     const { DropBox } = monitor
-    render(el, <FormGroup {...props}><DropBox /></FormGroup>)
+    render(el, <FormGroup><DropBox /></FormGroup>)
   },
   unmount(el) {
     unmount(el)
@@ -134,19 +198,18 @@ const FormItemLayout = {
 
   title: '项',
   icon: AppstoreOutlined,
+  direction: 'h',
 
   needs: ['FormGroup'],
   allows: ['FormCell'],
 
-  props: [],
-
-  mount(el, props, monitor) {
+  mount(el, monitor) {
     const { DropBox } = monitor
-    render(el, <FormItem {...props}><DropBox /></FormItem>)
+    render(el, <FormItem><DropBox /></FormItem>)
   },
-  update(el, props, monitor) {
+  update(el, monitor) {
     const { DropBox } = monitor
-    render(el, <FormItem {...props}><DropBox /></FormItem>)
+    render(el, <FormItem><DropBox /></FormItem>)
   },
   unmount(el) {
     unmount(el)
@@ -160,17 +223,15 @@ const FormCellLayout = {
   icon: BlockOutlined,
 
   needs: ['FormItem'],
-  allows: ['InputText', 'Textarea'],
+  allows: ['InputText', 'Textarea', 'InputNumber'],
 
-  props: [],
-
-  mount(el, props, monitor) {
+  mount(el, monitor) {
     const { DropBox } = monitor
-    render(el, <FormCell {...props}><DropBox /></FormCell>)
+    render(el, <FormCell><DropBox /></FormCell>)
   },
-  update(el, props, monitor) {
+  update(el, monitor) {
     const { DropBox } = monitor
-    render(el, <FormCell {...props}><DropBox /></FormCell>)
+    render(el, <FormCell><DropBox /></FormCell>)
   },
   unmount(el) {
     unmount(el)
@@ -181,15 +242,16 @@ export default {
   groups: [
     {
       id: 'atom',
-      title: '原子组件',
+      title: '原子素材',
       items: [
         InputTextLayout,
         TextareaLayout,
+        InputNumberLayout,
       ],
     },
     {
       id: 'layout',
-      title: '布局组件',
+      title: '布局素材',
       items: [
         FormGroupLayout,
         FormItemLayout,

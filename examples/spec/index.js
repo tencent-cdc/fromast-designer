@@ -12,6 +12,7 @@ if (json) {
 }
 
 editor.on('save', (json) => {
+  console.log(json)
   const formJSON = JSON.stringify(json)
   sessionStorage.setItem('__JSON__', formJSON)
   Popup.toast('保存成功')

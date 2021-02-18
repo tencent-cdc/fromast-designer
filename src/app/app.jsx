@@ -8,7 +8,7 @@ import { HTML5Backend } from 'react-dnd-html5-backend'
 
 class App extends Component {
   state = {
-    activeTopTab: 0,
+    activeTopTab: 1,
   }
 
   onInit() {
@@ -18,10 +18,15 @@ class App extends Component {
     globalModelScope.set(model)
   }
 
-  handleModelJSONChange = (modelJSON) => {
-    const { json, onJSONChange } = this.props
-    const { model, ...others } = json || {}
-    const next = { model: modelJSON, ...others }
+  handleModelJSONChange = (model) => {
+    const { json = {}, onJSONChange } = this.props
+    const next = { ...json, model }
+    onJSONChange(next)
+  }
+
+  handleItemsChange = (items) => {
+    const { json = {}, onJSONChange } = this.props
+    const next = { ...json, items }
     onJSONChange(next)
   }
 
@@ -29,7 +34,7 @@ class App extends Component {
     const { config, onSave, onReset, onDownload, json, onImport } = this.props
     const { activeTopTab } = this.state
     const setActiveTopTab = (activeTopTab) => this.setState({ activeTopTab })
-    const { model: modelJSON } = json || {}
+    const { model: modelJSON, items = {} } = json || {}
 
     return (
       <DndProvider backend={HTML5Backend}>
@@ -46,7 +51,7 @@ class App extends Component {
             </Section>
           </Section>
           {activeTopTab === 0 ? <ModelDesigner config={config} modelJSON={modelJSON} onModelJSONChange={this.handleModelJSONChange} /> : null}
-          {activeTopTab === 1 ? <ComponentsDesigner config={config} /> : null}
+          {activeTopTab === 1 ? <ComponentsDesigner config={config} json={items} onChange={this.handleItemsChange} /> : null}
         </Section>
       </DndProvider>
     )

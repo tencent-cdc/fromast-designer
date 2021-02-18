@@ -7,20 +7,20 @@ const DND_TYPES = {
 }
 
 export function DragBox(props) {
-  const { type = DND_TYPES.BASIC, children, data, canDrag, beginDrag, endDrag, className, render } = props
+  const { type = DND_TYPES.BASIC, children, source, canDrag, beginDrag, endDrag, className, render } = props
   const [, drag, preview] = useDrag({
-    item: { type, data },
+    item: { type, source },
     canDrag(monitor) {
       const cursor = monitor.getClientOffset()
-      return canDrag ? canDrag(data, cursor) : true
+      return canDrag ? canDrag(source, cursor) : true
     },
     begin(monitor) {
       const cursor = monitor.getClientOffset()
-      beginDrag && beginDrag(data, cursor)
+      beginDrag && beginDrag(source, cursor)
     },
     end(_, monitor) {
       const cursor = monitor.getClientOffset()
-      endDrag && endDrag(data, cursor)
+      endDrag && endDrag(source, cursor)
     },
   })
 
@@ -37,15 +37,15 @@ export function DropBox(props) {
     accept: type ? [DND_TYPES.BASIC, type] : DND_TYPES.BASIC,
     canDrop(item, monitor) {
       const cursor = monitor.getClientOffset()
-      return canDrop ? canDrop(item.data, cursor) : true
+      return canDrop ? canDrop(item.source, cursor) : true
     },
     hover(item, monitor) {
       const cursor = monitor.getClientOffset() // 鼠标位置
-      onHover && onHover(item.data, cursor)
+      onHover && onHover(item.source, cursor)
     },
     drop(item, monitor) {
       const cursor = monitor.getClientOffset()
-      onDrop(item.data, cursor)
+      onDrop(item.source, cursor)
     },
     collect(monitor) {
       return {

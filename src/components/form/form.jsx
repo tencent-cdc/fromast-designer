@@ -63,7 +63,7 @@ export const FormLoop = (props) => {
   const handleDel = (index) => {
     onDel(index)
   }
-  const keys = useUniqueKeys(items.length)
+  const keys = useUniqueKeys(items)
 
   return (
     <Section stylesheet={[classnames('form-loop')]}>

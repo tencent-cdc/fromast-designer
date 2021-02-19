@@ -1,15 +1,15 @@
 import { React } from 'nautil'
 import { unmount, render } from 'nautil/dom'
 import { FormastComponents } from '@tencent/formast/react'
-import { EditOutlined, FormOutlined, GroupOutlined, AppstoreOutlined, BlockOutlined, FieldBinaryOutlined } from '@ant-design/icons'
+import { EditOutlined, FormOutlined, GroupOutlined, AppstoreOutlined, BlockOutlined, BarsOutlined } from '@ant-design/icons'
 import { VALUE_TYPES } from './constants.js'
 
-const { Input, Textarea, FormGroup, FormItem, FormCell } = FormastComponents
+const { Input, Textarea, FormGroup, FormItem, FormCell, Select } = FormastComponents
 
-const InputTextLayout = {
-  id: 'InputText',
+const InputLayout = {
+  id: 'Input',
 
-  title: '单行文本',
+  title: '输入框',
   icon: EditOutlined,
 
   props: [
@@ -17,7 +17,10 @@ const InputTextLayout = {
       key: 'type',
       types: [VALUE_TYPES.STR],
       value: 'text',
-      disabled: true,
+    },
+    {
+      key: 'label',
+      types: [VALUE_TYPES.STR, VALUE_TYPES.EXP],
     },
     {
       key: 'value',
@@ -47,73 +50,20 @@ const InputTextLayout = {
       title: '是否禁用',
       types: [VALUE_TYPES.EXP],
     },
-  ],
-
-  mount(el, monitor) {
-    const props = monitor.getComputedProps()
-    const { placeholder, type } = props
-    render(el, <Input type={type} placeholder={placeholder} />)
-  },
-  update(el, monitor) {
-    const props = monitor.getComputedProps()
-    const { placeholder, type } = props
-    render(el, <Input type={type} placeholder={placeholder} />)
-  },
-  unmount(el) {
-    unmount(el)
-  },
-}
-
-const InputNumberLayout = {
-  id: 'InputNumber',
-
-  title: '数字',
-  icon: FieldBinaryOutlined,
-
-  props: [
     {
-      key: 'type',
-      value: 'number',
-    },
-    {
-      key: 'value',
-      title: '值',
-      types: [VALUE_TYPES.EXP],
-    },
-    {
-      key: 'onChange',
-      types: [VALUE_TYPES.FN],
-    },
-    {
-      key: 'placeholder',
+      key: 'suffix',
+      title: '修饰',
       types: [VALUE_TYPES.STR, VALUE_TYPES.EXP],
     },
-    {
-      key: 'hidden',
-      title: '是否隐藏',
-      types: [VALUE_TYPES.EXP],
-    },
-    {
-      key: 'required',
-      title: '是否必填',
-      types: [VALUE_TYPES.EXP],
-    },
-    {
-      key: 'disabled',
-      title: '是否禁用',
-      types: [VALUE_TYPES.EXP],
-    },
   ],
 
   mount(el, monitor) {
     const props = monitor.getComputedProps()
-    const { placeholder, type } = props
-    render(el, <Input type={type} placeholder={placeholder} />)
+    const { placeholder, type, label, suffix } = props
+    render(el, <Input type={type} label={label} suffix={suffix} placeholder={placeholder} />)
   },
   update(el, monitor) {
-    const props = monitor.getComputedProps()
-    const { placeholder, type } = props
-    render(el, <Input type={type} placeholder={placeholder} />)
+    InputLayout.mount(el, monitor)
   },
   unmount(el) {
     unmount(el)
@@ -128,6 +78,10 @@ const TextareaLayout = {
 
   props: [
     {
+      key: 'label',
+      types: [VALUE_TYPES.STR, VALUE_TYPES.EXP],
+    },
+    {
       key: 'value',
       title: '值',
       types: [VALUE_TYPES.STR, VALUE_TYPES.EXP],
@@ -155,17 +109,85 @@ const TextareaLayout = {
       title: '是否禁用',
       types: [VALUE_TYPES.EXP],
     },
+    {
+      key: 'suffix',
+      title: '修饰',
+      types: [VALUE_TYPES.STR, VALUE_TYPES.EXP],
+    },
   ],
 
   mount(el, monitor) {
     const props = monitor.getComputedProps()
-    const { placeholder } = props
-    render(el, <Textarea placeholder={placeholder} />)
+    const { placeholder, label, suffix } = props
+    render(el, <Textarea label={label} suffix={suffix} placeholder={placeholder} />)
   },
   update(el, monitor) {
+    TextareaLayout.mount(el, monitor)
+  },
+  unmount(el) {
+    unmount(el)
+  },
+}
+
+const SelectLayout = {
+  id: 'Select',
+
+  title: '下拉',
+  icon: BarsOutlined,
+
+  props: [
+    {
+      key: 'label',
+      types: [VALUE_TYPES.STR, VALUE_TYPES.EXP],
+    },
+    {
+      key: 'options',
+      title: '选项列表',
+      types: [VALUE_TYPES.EXP],
+      defender: value => Array.isArray(value) && !value.some(item => !('text' in item && 'value' in item)) ? value : [],
+    },
+    {
+      key: 'value',
+      title: '值',
+      types: [VALUE_TYPES.STR, VALUE_TYPES.EXP],
+    },
+    {
+      key: 'onChange',
+      types: [VALUE_TYPES.FN],
+    },
+    {
+      key: 'placeholder',
+      types: [VALUE_TYPES.STR, VALUE_TYPES.EXP],
+    },
+    {
+      key: 'hidden',
+      title: '是否隐藏',
+      types: [VALUE_TYPES.EXP],
+    },
+    {
+      key: 'required',
+      title: '是否必填',
+      types: [VALUE_TYPES.EXP],
+    },
+    {
+      key: 'disabled',
+      title: '是否禁用',
+      types: [VALUE_TYPES.EXP],
+    },
+    {
+      key: 'suffix',
+      title: '修饰',
+      types: [VALUE_TYPES.STR, VALUE_TYPES.EXP],
+    },
+  ],
+
+  mount(el, monitor) {
     const props = monitor.getComputedProps()
-    const { placeholder } = props
-    render(el, <Textarea placeholder={placeholder} />)
+    const { placeholder, options, label, suffix } = props
+    render(el, <Select options={options} label={label} suffix={suffix} placeholder={placeholder} />)
+  },
+  update(el, monitor) {
+    SelectLayout.mount(el, monitor)
   },
   unmount(el) {
     unmount(el)
@@ -223,7 +245,7 @@ const FormCellLayout = {
   icon: BlockOutlined,
 
   needs: ['FormItem'],
-  allows: ['InputText', 'Textarea', 'InputNumber'],
+  allows: ['Input', 'Textarea'],
 
   mount(el, monitor) {
     const { DropBox } = monitor
@@ -244,9 +266,9 @@ export default {
       id: 'atom',
       title: '原子素材',
       items: [
-        InputTextLayout,
+        InputLayout,
         TextareaLayout,
-        InputNumberLayout,
+        SelectLayout,
       ],
     },
     {

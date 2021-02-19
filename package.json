@@ -14,13 +14,12 @@
   "license": "ISC",
   "dependencies": {
     "@ant-design/icons": "^4.5.0",
-    "@tencent/formast": "0.0.13",
-    "nautil": "^0.17.2",
+    "@tencent/formast": "0.0.18",
+    "nautil": "^0.17.3",
     "react-dnd": "^11.1.3",
     "react-dnd-html5-backend": "^11.1.3",
     "scopex": "^1.2.3",
-    "ts-fns": "^9.0.3",
-    "tyshemo": "^10.1.2"
+    "ts-fns": "^9.0.3"
   },
   "devDependencies": {
     "less": "^4.1.0",

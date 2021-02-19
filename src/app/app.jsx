@@ -5,10 +5,11 @@ import { ModelDesigner } from './model-designer.jsx'
 import { ComponentsDesigner } from './components-designer.jsx'
 import { DndProvider } from 'react-dnd'
 import { HTML5Backend } from 'react-dnd-html5-backend'
+import { LayoutDesigner } from './layout-designer.jsx'
 
 class App extends Component {
   state = {
-    activeTopTab: 1,
+    activeTopTab: 0,
   }
 
   onInit() {
@@ -30,11 +31,17 @@ class App extends Component {
     onJSONChange(next)
   }
 
+  handleLayoutChange = (layout) => {
+    const { json = {}, onJSONChange } = this.props
+    const next = { ...json, layout }
+    onJSONChange(next)
+  }
+
   render() {
     const { config, onSave, onReset, onDownload, json, onImport } = this.props
     const { activeTopTab } = this.state
     const setActiveTopTab = (activeTopTab) => this.setState({ activeTopTab })
-    const { model: modelJSON, items = {} } = json || {}
+    const { model: modelJSON, items = {}, layout = {} } = json || {}
 
     return (
       <DndProvider backend={HTML5Backend}>
@@ -52,6 +59,7 @@ class App extends Component {
           </Section>
           {activeTopTab === 0 ? <ModelDesigner config={config} modelJSON={modelJSON} onModelJSONChange={this.handleModelJSONChange} /> : null}
           {activeTopTab === 1 ? <ComponentsDesigner config={config} json={items} onChange={this.handleItemsChange} /> : null}
+          {activeTopTab === 2 ? <LayoutDesigner config={config} layoutJSON={layout} itemsJSON={items} onChange={this.handleLayoutChange} /> : null}
         </Section>
       </DndProvider>
     )

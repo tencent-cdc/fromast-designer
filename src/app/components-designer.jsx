@@ -1,15 +1,15 @@
 import { React, Component, Section, Text, If, Else, Each, Switch, Case, produce } from 'nautil'
 import { classnames } from '../utils'
-import { DragDesigner, DropDesigner } from '../components/drag-drop/designer.jsx'
 import { Form, FormItem, Label, Input } from '../components/form/form.jsx'
 import { RichPropEditor } from '../components/rich-prop-editor/rich-prop-editor.jsx'
 import { Button } from '../components/button/button.jsx'
 import { AutoModal } from '../components/modal/modal.jsx'
 import { Popup } from '../libs/popup.js'
 import { Confirm } from '../components/confirm/confirm.jsx'
-import { map, each, find } from 'ts-fns'
+import { each, find } from 'ts-fns'
 import { globalModelScope, parseKey } from '../utils'
 import ScopeX from 'scopex'
+import { Designer } from '../components/designer/designer.jsx'
 
 const defaultState = {
   // 添加组件时使用
@@ -27,7 +27,7 @@ const defaultState = {
   },
   selectedMonitor: null,
   // 保存配置时使用
-  monitors: null,
+  jsx: null,
 }
 
 export class ComponentsDesigner extends Component {
@@ -91,33 +91,14 @@ export class ComponentsDesigner extends Component {
     onChange(items)
     this.setState(defaultState)
   }
+
   handleSaveSettings = () => {
-    const { monitors, selectedComponent, componentSetting } = this.state
+    const { jsx, selectedComponent, componentSetting } = this.state
     const { json, onChange } = this.props
 
-    if (!monitors) {
+    if (!jsx) {
       return Popup.toast('请完成组件设计！')
     }
-
-    const extract = (monitor) => {
-      const { source, props, children } = monitor
-      const { id } = source
-      const attrs = {}
-      each(props, (data, key) => {
-        const { type, params, value } = data
-        if (type === 0) {
-          attrs[key] = value
-        }
-        else if (type === 1) {
-          attrs[key] = `{${value}}`
-        }
-        else if (type === 2) {
-          attrs[`${key}(${params})`] = `{${value}}`
-        }
-      })
-      return [id, attrs, ...children.map(extract)]
-    }
-    const jsx = extract(monitors[0])
 
     const { fields, alias } = componentSetting
     const renderKey = `render(${alias})!`
@@ -134,14 +115,14 @@ export class ComponentsDesigner extends Component {
 
     Popup.toast('保存配置成功')
   }
+  handleChange = (jsx) => {
+    this.setState({ jsx })
+  }
 
   handleRemove = (item) => {
     if (this.state.selectedMonitor && this.state.selectedMonitor === item) {
       this.setState({ activeSetting: 0, selectedMonitor: null })
     }
-  }
-  handleChange = (monitors) => {
-    this.setState({ monitors })
   }
   handleSelect = (selectedMonitor) => {
     this.setState({ selectedMonitor, activeSetting: 1 })
@@ -214,79 +195,77 @@ export class ComponentsDesigner extends Component {
             </Form>
           </AutoModal>
         </Section>
-        <If is={!!selectedComponent}>
-          <Section stylesheet={[classnames('main')]}>
-            <Section stylesheet={[classnames('components-designer__buttons')]}>
-              <Button primary onHit={this.handleSaveSettings}>保存配置</Button>
-              <Confirm
-                trigger={show => <Button secondary onHit={show}>删除组件</Button>}
-                title="提示"
-                content="确认删除组件吗？"
-                onSubmit={this.handleRemoveComponent}
-              />
-            </Section>
-            <DropDesigner
-              className={classnames('components-designer__canvas')}
-              onChange={this.handleChange}
-              onSelect={this.handleSelect}
-              onRemove={this.handleRemove}
-              expParser={this.parseExp}
-              selected={selectedMonitor}
-              max={1}
-              config={config}
-              elements={elements}
-            />
-            <Section stylesheet={[classnames('components-designer__settings')]}>
-              <Section stylesheet={[classnames('components-designer__settings-menus')]}>
-                <Section stylesheet={[classnames('components-designer__settings-menu', this.state.activeSetting === 0 ? 'components-designer__settings-menu--active' : '')]} onHit={() => this.setState({ activeSetting: 0 })}><Text>组件配置</Text></Section>
-                <If is={!!selectedMonitor}><Section stylesheet={[classnames('components-designer__settings-menu', this.state.activeSetting === 1 ? 'components-designer__settings-menu--active' : '')]} onHit={() => this.setState({ activeSetting: 1 })}><Text>素材配置</Text></Section></If>
-              </Section>
-              <Switch of={this.state.activeSetting}>
-                <Case is={0}>
-                  <Section stylesheet={[classnames('components-designer__setting')]}>
-                    <Form>
-                      <FormItem>
-                        <Label>字段</Label>
-                        <Input value={this.state.componentSetting.fields} onChange={(e) => this.update(state => { state.componentSetting.fields = e.target.value })} placeholder="模型上的字段，例如：a,b,c" />
-                      </FormItem>
-                      <FormItem>
-                        <Label>别名</Label>
-                        <Input value={this.state.componentSetting.alias} onChange={(e) => this.update(state => { state.componentSetting.alias = e.target.value })} placeholder="将字段映射到作用域中，例如将a,b,c映射为$a,$b,$c" />
-                      </FormItem>
-                    </Form>
-                  </Section>
-                </Case>
-                <Case is={1}>
-                  <Section stylesheet={[classnames('components-designer__setting')]}>
-                    <If is={!!selectedMonitor} render={() =>
+        <If is={!!selectedComponent} render={() =>
+          <Designer
+            buttons={
+              <>
+                <Button primary onHit={this.handleSaveSettings}>保存配置</Button>
+                <Confirm
+                  trigger={show => <Button secondary onHit={show}>删除组件</Button>}
+                  title="提示"
+                  content="确认删除组件吗？"
+                  onSubmit={this.handleRemoveComponent}
+                />
+              </>
+            }
+            settings={
+              <Section stylesheet={[classnames('components-designer__settings')]}>
+                <Section stylesheet={[classnames('components-designer__settings-menus')]}>
+                  <Section stylesheet={[classnames('components-designer__settings-menu', this.state.activeSetting === 0 ? 'components-designer__settings-menu--active' : '')]} onHit={() => this.setState({ activeSetting: 0 })}><Text>组件配置</Text></Section>
+                  <If is={!!selectedMonitor}><Section stylesheet={[classnames('components-designer__settings-menu', this.state.activeSetting === 1 ? 'components-designer__settings-menu--active' : '')]} onHit={() => this.setState({ activeSetting: 1 })}><Text>素材配置</Text></Section></If>
+                </Section>
+                <Switch of={this.state.activeSetting}>
+                  <Case is={0}>
+                    <Section stylesheet={[classnames('components-designer__setting')]}>
                       <Form>
-                        {selectedMonitor.source.props.map((item) => {
-                          return (
-                            <FormItem key={item.key} stylesheet={[classnames('form-item--rich')]}>
-                              <RichPropEditor
-                                label={item.title || item.key}
-                                data={selectedMonitor.props[item.key]}
-                                types={item.types}
-                                onChange={data => {
-                                  selectedMonitor.props[item.key] = data
-                                  this.update()
-                                }}
-                              />
-                            </FormItem>
-                          )
-                        })}
+                        <FormItem>
+                          <Label>字段</Label>
+                          <Input value={this.state.componentSetting.fields} onChange={(e) => this.update(state => { state.componentSetting.fields = e.target.value })} placeholder="模型上的字段，例如：a,b,c" />
+                        </FormItem>
+                        <FormItem>
+                          <Label>别名</Label>
+                          <Input value={this.state.componentSetting.alias} onChange={(e) => this.update(state => { state.componentSetting.alias = e.target.value })} placeholder="将字段映射到作用域中，例如将a,b,c映射为$a,$b,$c" />
+                        </FormItem>
                       </Form>
-                    } />
-                  </Section>
-                </Case>
-              </Switch>
-            </Section>
-          </Section>
-          <Section stylesheet={[classnames('sidebar sidebar--right components-designer__sources dragable')]}>
-            <DragDesigner config={config} />
-          </Section>
-        <Else />
-          <Section stylesheet={[classnames('components-designer__empty')]}>请添加或选中组件后再操作</Section>
+                    </Section>
+                  </Case>
+                  <Case is={1}>
+                    <Section stylesheet={[classnames('components-designer__setting')]}>
+                      <If is={!!selectedMonitor} render={() =>
+                        <Form>
+                          {selectedMonitor.source.props.map((item) => {
+                            return (
+                              <FormItem key={item.key} stylesheet={[classnames('form-item--rich')]}>
+                                <RichPropEditor
+                                  label={item.title || item.key}
+                                  data={selectedMonitor.props[item.key]}
+                                  types={item.types}
+                                  onChange={data => {
+                                    selectedMonitor.props[item.key] = data
+                                    this.update()
+                                  }}
+                                />
+                              </FormItem>
+                            )
+                          })}
+                        </Form>
+                      } />
+                    </Section>
+                  </Case>
+                </Switch>
+              </Section>
+            }
+            elements={elements}
+            config={config}
+            selected={selectedMonitor}
+            onRemove={this.handleRemove}
+            onSelect={this.handleSelect}
+            onChange={this.handleChange}
+            expParser={this.parseExp}
+            max={1}
+          />
+        }>
+        <Else render={() => <Section stylesheet={[classnames('components-designer__empty')]}>请添加或选中组件后再操作</Section>} />
         </If>
       </Section>
     )

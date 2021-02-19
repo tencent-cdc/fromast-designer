@@ -1,13 +1,14 @@
-import { React, Component, Section, Text, createRef, Each, ifexist, nullable, If } from 'nautil'
+import { React, Component, Section, Text, createRef, Each, nonable, ifexist, If } from 'nautil'
 import { DropBox, DragBox } from './drag-drop.jsx'
 import { classnames, parseKey } from '../../utils'
 import DefaultComponentsConfig from '../../config/components.jsx'
 import { DndProvider } from 'react-dnd'
 import { HTML5Backend } from 'react-dnd-html5-backend'
 import { DeleteOutlined, SettingOutlined, MenuOutlined } from '@ant-design/icons'
-import { createRandomString, each, isString } from 'ts-fns'
+import { createRandomString, each } from 'ts-fns'
 import { Confirm } from '../confirm/confirm.jsx'
 import { VALUE_TYPES } from '../../config/constants.js'
+import { isFunction, debounce } from 'ts-fns'
 
 function getConfig(config) {
   const groupSet = {}
@@ -135,28 +136,32 @@ export class Monitor {
     const res = {}
     const { getPassedProps } = this.options
     const { expParser } = getPassedProps()
-    if (!expParser) {
-      return res
-    }
 
     const props = this.props
     const keys = Object.keys(props)
     // 当表达式输入没有输入完时，可能会保持，这时通过一个try..catch保证正常渲染不报错
-    const tryGet = (get, defaultValue) => {
-      try {
-        return get()
-      }
-      catch (e) {
-        return defaultValue
-      }
+    const tryGet = (value, ...fns) => {
+      let res = value
+
+      fns.forEach((fn) => {
+        try {
+          res = isFunction(fn) ? fn(res) : res
+        }
+        catch (e) {
+          // console.error(e)
+        }
+      })
+
+      return res
+
     }
     keys.forEach((key) => {
-      const { type, value, params } = props[key]
+      const { type, value, params, defender } = props[key]
       if (type <= 0) {
         res[key] = value
       }
       else if (type === 1) {
-        res[key] = tryGet(() => expParser(value), value)
+        res[key] = tryGet(value, expParser, defender)
       }
       else if (type === 2) {
         const items = params.split(',').filter(item => !!item)
@@ -166,7 +171,7 @@ export class Monitor {
             if (items[i])
             locals[items[i]] = arg
           })
-          return tryGet(() => expParser(value, locals), value)
+          return tryGet(value, (value) => expParser(value, locals), defender)
         }
       }
     })
@@ -174,12 +179,13 @@ export class Monitor {
   }
   setInitProps(props) {
     props.forEach((item) => {
-      const { key, value = '', types, disabled } = item
+      const { key, value = '', types, disabled, defender } = item
       const prop = {
         type: types ? types[0] : VALUE_TYPES.STR,
         value,
         params: '',
         disabled,
+        defender,
       }
       this.props[key] = prop
     })
@@ -206,6 +212,7 @@ export class Monitor {
           value: isExp(value) ? getExp(value) : value,
           params: params.join(','),
           disabled: sourceProp.disabled,
+          defender: sourceProp.defender,
         }
       }
       else if (isExp(value)) {
@@ -214,6 +221,7 @@ export class Monitor {
           value: getExp(value),
           params: '',
           disabled: sourceProp.disabled,
+          defender: sourceProp.defender,
         }
       }
       else {
@@ -222,6 +230,7 @@ export class Monitor {
           value,
           params: '',
           disabled: sourceProp.disabled,
+          defender: sourceProp.defender,
         }
       }
     })
@@ -231,12 +240,12 @@ export class Monitor {
 export class DropDesigner extends Component {
   static props = {
     config: Object,
-    elements: ifexist(Array),
+    elements: nonable(Array),
     source: ifexist(Object),
     type: ifexist(String),
-    selected: ifexist(nullable(Monitor)),
-    expParser: ifexist(Function),
-    max: ifexist(Number),
+    selected: nonable(Monitor),
+    expParser: nonable(Function),
+    max: nonable(Number),
     onSelect: true,
     onRemove: true,
     onChange: true,
@@ -266,11 +275,17 @@ export class DropDesigner extends Component {
         const [id, props, ...children] = element
         const source = sources.find(item => item.id === id)
 
+        // 清除不存在的素材
+        // TODO 版本升级时，是否需要做兼容性考虑
+        if (!source) {
+          return
+        }
+
         const item = this.createAndPutItem(this.items.length - 1, source)
         item.setExpProps(props)
         item.elements = children
         return item
-      })
+      }).filter(item => !!item)
     }
     createAndPutItems(elements)
     this.update()
@@ -352,9 +367,10 @@ export class DropDesigner extends Component {
   mountItem(item) {
     item.source.mount(item.el.current, item)
   }
-  updateItem(item) {
+  // 更新内容没有必要那么即时
+  updateItem = debounce((item) => {
     item.source.mount(item.el.current, item)
-  }
+  }, 100)
   handleChange = () => {
     const { onChange } = this.props
     if (onChange) {
@@ -421,7 +437,7 @@ export class DropDesigner extends Component {
                   <Section stylesheet={[classnames('drop-designer__item', selected && selected.id === item.id ? 'drop-designer__item--selected' : '', item.source.direction === 'h' ? 'drop-designer__item--horizontal' : 'drop-designer__item--vertical')]}>
                     <div ref={item.el}></div>
                     <Section stylesheet={[classnames('drop-designer__item__actions')]}>
-                      <Text stylesheet={[classnames('drop-designer__item__name')]}>{item.source.title}</Text>
+                      <Text stylesheet={[classnames('drop-designer__item__name')]}>{item.source.title + ' ' + item.source.id}</Text>
                       <span className={classnames('drop-designer__item__move')} ref={drag}><MenuOutlined /></span>
                       <If is={!!item.source.props && item.source.props.length > 0} render={() => <SettingOutlined onClick={() => this.handleEdit(item)} />} />
                       <Confirm trigger={(show) => <DeleteOutlined onClick={show} />} onSubmit={() => this.handleRemove(i)} content="确定删除吗？" />

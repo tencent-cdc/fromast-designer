@@ -7,9 +7,11 @@ import { AutoModal } from '../components/modal/modal.jsx'
 import { Popup } from '../libs/popup.js'
 import { Confirm } from '../components/confirm/confirm.jsx'
 import { each, find } from 'ts-fns'
-import { globalModelScope, parseKey } from '../utils'
+import { globalModelScope, parseKey, getConfig } from '../utils'
 import ScopeX from 'scopex'
 import { Designer } from '../components/designer/designer.jsx'
+import DefaultItemsConfig from '../config/items.jsx'
+import { store, useStore } from '../components/drag-drop/store.js'
 
 const defaultState = {
   // 添加组件时使用
@@ -25,12 +27,11 @@ const defaultState = {
     fields: '',
     alias: '',
   },
-  selectedMonitor: null,
   // 保存配置时使用
   jsx: null,
 }
 
-export class ComponentsDesigner extends Component {
+export class ItemsDesigner extends Component {
   state = defaultState
 
   handleAddComponent = () => {
@@ -120,12 +121,15 @@ export class ComponentsDesigner extends Component {
   }
 
   handleRemove = (item) => {
-    if (this.state.selectedMonitor && this.state.selectedMonitor === item) {
-      this.setState({ activeSetting: 0, selectedMonitor: null })
+    const selectedMonitor = store.getState()
+    if (selectedMonitor && selectedMonitor === item) {
+      this.setState({ activeSetting: 0 })
+      store.resetState()
     }
   }
   handleSelect = (selectedMonitor) => {
-    this.setState({ selectedMonitor, activeSetting: 1 })
+    this.setState({ activeSetting: 1 })
+    store.dispatch(() => selectedMonitor)
   }
 
   parseExp = (exp, locals) => {
@@ -155,9 +159,11 @@ export class ComponentsDesigner extends Component {
     return scopex.parse(exp)
   }
 
-  render() {
-    const { selectedMonitor, selectedComponent } = this.state
+  Render() {
+    const { selectedComponent } = this.state
+    const { state: selectedMonitor } = useStore()
     const { json, config } = this.props
+    const sourceConfig = getConfig(config, DefaultItemsConfig)
 
     const components = Object.keys(json)
     const item = json[selectedComponent] || {}
@@ -256,8 +262,7 @@ export class ComponentsDesigner extends Component {
               </Section>
             }
             elements={elements}
-            config={config}
-            selected={selectedMonitor}
+            config={sourceConfig}
             onRemove={this.handleRemove}
             onSelect={this.handleSelect}
             onChange={this.handleChange}

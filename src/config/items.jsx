@@ -1,7 +1,6 @@
 import { React } from 'nautil'
 import { unmount, render } from 'nautil/dom'
 import { FormastComponents } from '@tencent/formast/react'
-import { EditOutlined, FormOutlined, GroupOutlined, AppstoreOutlined, BlockOutlined, BarsOutlined } from '@ant-design/icons'
 import { VALUE_TYPES } from './constants.js'
 
 const { Input, Textarea, FormGroup, FormItem, FormCell, Select } = FormastComponents
@@ -10,7 +9,7 @@ const InputLayout = {
   id: 'Input',
 
   title: '输入框',
-  icon: EditOutlined,
+  icon: 'BsPhoneLandscape',
 
   props: [
     {
@@ -74,7 +73,7 @@ const TextareaLayout = {
   id: 'Textarea',
 
   title: '多行文本',
-  icon: FormOutlined,
+  icon: 'BsCardText',
 
   props: [
     {
@@ -133,7 +132,7 @@ const SelectLayout = {
   id: 'Select',
 
   title: '下拉',
-  icon: BarsOutlined,
+  icon: 'BsListCheck',
 
   props: [
     {
@@ -198,7 +197,7 @@ const FormGroupLayout = {
   id: 'FormGroup',
 
   title: '组',
-  icon: GroupOutlined,
+  icon: 'BsLayoutTextWindowReverse',
 
   allows: ['FormItem'],
 
@@ -219,7 +218,7 @@ const FormItemLayout = {
   id: 'FormItem',
 
   title: '项',
-  icon: AppstoreOutlined,
+  icon: 'BsLayoutThreeColumns',
   direction: 'h',
 
   needs: ['FormGroup'],
@@ -242,10 +241,10 @@ const FormCellLayout = {
   id: 'FormCell',
 
   title: '单元',
-  icon: BlockOutlined,
+  icon: 'BsApp',
 
   needs: ['FormItem'],
-  allows: ['Input', 'Textarea'],
+  allows: ['Input', 'Textarea', 'Select'],
 
   mount(el, monitor) {
     const { DropBox } = monitor

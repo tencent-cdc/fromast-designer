@@ -2,7 +2,7 @@ import { React, Component, Section } from 'nautil'
 import { Button } from '../components/button/button.jsx'
 import { classnames, globalModelScope } from '../utils'
 import { ModelDesigner } from './model-designer.jsx'
-import { ComponentsDesigner } from './components-designer.jsx'
+import { ItemsDesigner } from './items-designer.jsx'
 import { DndProvider } from 'react-dnd'
 import { HTML5Backend } from 'react-dnd-html5-backend'
 import { LayoutDesigner } from './layout-designer.jsx'
@@ -58,7 +58,7 @@ class App extends Component {
             </Section>
           </Section>
           {activeTopTab === 0 ? <ModelDesigner config={config} modelJSON={modelJSON} onModelJSONChange={this.handleModelJSONChange} /> : null}
-          {activeTopTab === 1 ? <ComponentsDesigner config={config} json={items} onChange={this.handleItemsChange} /> : null}
+          {activeTopTab === 1 ? <ItemsDesigner config={config} json={items} onChange={this.handleItemsChange} /> : null}
           {activeTopTab === 2 ? <LayoutDesigner config={config} layoutJSON={layout} itemsJSON={items} onChange={this.handleLayoutChange} /> : null}
         </Section>
       </DndProvider>

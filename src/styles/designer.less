@@ -1,19 +1,31 @@
 @import "./_vars.less";
 
 @{NAMESPACE}__designer {
+  &__main {
+    overflow: hidden;
+  }
+
   &__buttons {
     padding: 5px;
     text-align: right;
   }
 
   &__canvas {
-    width: 100%;
-    height: 60vh;
     background-image: linear-gradient(90deg, rgba(180, 180, 180, 0.15) 10%, rgba(0, 0, 0, 0) 10%),
                       linear-gradient(rgba(180, 180, 180, 0.15) 10%, rgba(0, 0, 0, 0) 10%);
     background-size: 10px 10px;
     background-position: -1px 0;
     border-bottom: solid 1px rgba(180, 180, 180, 0.15);
+
+    width: 100%;
+    height: 60vh;
+    overflow: auto;
+    display: flex;
+
+    @{NAMESPACE}__drop-designer {
+      flex: 1;
+      overflow: unset;
+    }
   }
 
   &__sidebar @{NAMESPACE}__drag-box {

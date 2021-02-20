@@ -1,5 +1,5 @@
 import { React, Component, Section, Text, If, Switch, Case } from 'nautil'
-import { classnames } from '../utils'
+import { classnames, getConfig } from '../utils'
 import { Form, FormItem, Label, Input } from '../components/form/form.jsx'
 import { RichPropEditor } from '../components/rich-prop-editor/rich-prop-editor.jsx'
 import { Button } from '../components/button/button.jsx'
@@ -7,6 +7,7 @@ import { Popup } from '../libs/popup.js'
 import { find } from 'ts-fns'
 import { Designer } from '../components/designer/designer.jsx'
 import ScopeX from 'scopex'
+import DefaultLayoutConfig from '../config/layout.jsx'
 
 export class LayoutDesigner extends Component {
   state = {
@@ -66,6 +67,7 @@ export class LayoutDesigner extends Component {
   render() {
     const { selectedMonitor } = this.state
     const { layoutJSON, itemsJSON, config } = this.props
+    const sourceConfig = getConfig(config, DefaultLayoutConfig)
 
     const jsx = find(layoutJSON, (_, key) => /^render\(.*?\)!$/.test(key))
     const elements = jsx && [jsx]
@@ -122,8 +124,7 @@ export class LayoutDesigner extends Component {
             </Section>
           }
           elements={elements}
-          config={config}
-          selected={selectedMonitor}
+          config={sourceConfig}
           onRemove={this.handleRemove}
           onSelect={this.handleSelect}
           onChange={this.handleChange}

@@ -1,74 +1,54 @@
-import { React, Component, Section, Text, createRef, Each, nonable, ifexist, If } from 'nautil'
+import { React, Component, Section, Text, createRef, Each, nonable, ifexist, If, Enum, List, Dict } from 'nautil'
 import { DropBox, DragBox } from './drag-drop.jsx'
 import { classnames, parseKey } from '../../utils'
-import DefaultComponentsConfig from '../../config/components.jsx'
 import { DndProvider } from 'react-dnd'
 import { HTML5Backend } from 'react-dnd-html5-backend'
-import { DeleteOutlined, SettingOutlined, MenuOutlined } from '@ant-design/icons'
 import { createRandomString, each } from 'ts-fns'
 import { Confirm } from '../confirm/confirm.jsx'
 import { VALUE_TYPES } from '../../config/constants.js'
-import { isFunction, debounce } from 'ts-fns'
+import { isFunction, throttle } from 'ts-fns'
+import * as icons from '../icon'
+import { BsTrash, BsGear, BsArrowsMove } from '../icon'
+import { useStore, store } from './store.js'
 
-function getConfig(config) {
-  const groupSet = {}
-  const groups = []
-
-  DefaultComponentsConfig.groups.forEach((group) => {
-    const { id } = group
-    groupSet[id] = group
-    groups.push(id)
-  })
-
-  if (config.groups) {
-    config.groups.forEach((group) => {
-      const { id } = group
-
-      if (groupSet[id]) {
-        const itemSet = {}
-        const itemIds = []
-
-        groupSet[id].items.forEach((item) => {
-          itemIds.push(item.id)
-          itemSet[item.id] = item
-        })
-
-        if (group.items) {
-          group.items.forEach((item) => {
-            if (!itemSet[item.id]) {
-              itemIds.push(item.id)
+export const ConfigType = new Dict({
+  groups: [
+    {
+      id: String,
+      title: String,
+      items: [
+        {
+          id: String,
+          title: String,
+          icon: new Enum(Object.keys(icons)),
+          direction: ifexist('h'),
+          props: ifexist([
+            {
+              key: String,
+              types: new List(Object.values(VALUE_TYPES)),
+              title: ifexist(String),
+              defender: ifexist(Function),
             }
-            itemSet[item.id] = item
-          })
+          ]),
+          needs: ifexist([String]),
+          allows: ifexist([String]),
+          mount: Function,
+          update: Function,
+          unmount: Function,
         }
-
-        groupSet[id] = {
-          ...groupSet[id],
-          ...group,
-          items,
-        }
-      }
-      else {
-        groupSet[id] = group
-        groups.push(id)
-      }
-    })
-  }
-
-  return {
-    ...DefaultComponentsConfig,
-    ...config,
-    groups: groups.map((id) => groupSet[id]),
-  }
-}
+      ]
+    }
+  ]
+})
 
 export class DragDesigner extends Component {
-  getConfig() {
-    const { config } = this.props
-    return getConfig(config)
+  static props = {
+    config: ConfigType,
   }
+  static propsCheckAsync = true
+
   render() {
-    const { groups } = this.getConfig()
+    const { groups } = this.props.config
     return (
       <Section stylesheet={[classnames('drag-designer')]}>
         <Each of={groups} render={(group) => {
@@ -76,7 +56,8 @@ export class DragDesigner extends Component {
             <Section key={group.id} stylesheet={[classnames('drag-designer__source-group')]}>
               <Section stylesheet={[classnames('drag-designer__source-group__title')]}><Text>{group.title}</Text></Section>
               <Each of={group.items} render={(item) => {
-                const { icon: Icon, title, id } = item
+                const { icon, title, id } = item
+                const Icon = icons[icon]
                 return (
                   <DragBox key={title} source={item}>
                     <Section stylesheet={[classnames('drag-designer__source-item')]}>
@@ -96,11 +77,12 @@ export class DragDesigner extends Component {
 }
 
 export class Monitor {
-  constructor({ el, source, selected, ...options }) {
+  constructor({ el, source, getPassedProps, ...options }) {
     this.id = createRandomString(8)
     this.el = el
     this.source = source
     this.props = {}
+    this.getPassedProps = getPassedProps
     this.options = options
     this.children = []
     this.elements = []
@@ -110,8 +92,7 @@ export class Monitor {
     }
   }
   DropBox = (props) => {
-    const { getPassedProps } = this.options
-    const { selected, config, onSelect, onRemove, onChange, expParser } = getPassedProps()
+    const { config, onSelect, onRemove, onChange, expParser } = this.getPassedProps()
     return (
       <DndProvider backend={HTML5Backend}>
         <DropDesigner
@@ -119,7 +100,6 @@ export class Monitor {
           config={config}
           source={this.source}
           type={this.id}
-          selected={selected}
           expParser={expParser}
           elements={this.elements}
           onSelect={onSelect}
@@ -134,8 +114,7 @@ export class Monitor {
   }
   getComputedProps() {
     const res = {}
-    const { getPassedProps } = this.options
-    const { expParser } = getPassedProps()
+    const { expParser } = this.getPassedProps()
 
     const props = this.props
     const keys = Object.keys(props)
@@ -239,17 +218,17 @@ export class Monitor {
 
 export class DropDesigner extends Component {
   static props = {
-    config: Object,
+    config: ConfigType,
     elements: nonable(Array),
     source: ifexist(Object),
     type: ifexist(String),
-    selected: nonable(Monitor),
     expParser: nonable(Function),
     max: nonable(Number),
     onSelect: true,
     onRemove: true,
     onChange: true,
   }
+  static propsCheckAsync = true
 
   state = {
     move: null,
@@ -262,8 +241,7 @@ export class DropDesigner extends Component {
       return
     }
 
-    const sourceConfig = getConfig(config)
-    const { groups } = sourceConfig
+    const { groups } = config
 
     const sources = []
     groups.forEach(({ items }) => {
@@ -364,13 +342,16 @@ export class DropDesigner extends Component {
       return true
     }
   }
+
   mountItem(item) {
     item.source.mount(item.el.current, item)
   }
+
   // 更新内容没有必要那么即时
-  updateItem = debounce((item) => {
-    item.source.mount(item.el.current, item)
+  updateItem = throttle((item) => {
+    item.source.update(item.el.current, item)
   }, 100)
+
   handleChange = () => {
     const { onChange } = this.props
     if (onChange) {
@@ -392,10 +373,12 @@ export class DropDesigner extends Component {
     onRemove && onRemove(item)
     this.handleChange()
   }
-  handleEdit = (item) => {
+  handleSelect = (item) => {
     const { onSelect } = this.props
+    store.dispatch(item) // 触发更新
     onSelect && onSelect(item)
   }
+
   onUpdated() {
     this.items.forEach((item) => {
       if (!item) {
@@ -404,11 +387,13 @@ export class DropDesigner extends Component {
       this.updateItem(item)
     })
   }
-  render() {
-    const { className, selected, type } = this.props
+
+  Render() {
+    const { state: selected } = useStore()
+    const { className, type, source } = this.props
     const items = this.items
     return (
-      <Section className={classnames('drop-designer') + (className ? ' ' + className : '')}>
+      <Section className={classnames('drop-designer', source && source.direction === 'h' ? 'drop-designer--horizontal' : 'drop-designer--vertical') + (className ? ' ' + className : '')}>
         {items.map((item, i) => {
           // 占位符
           if (!item) {
@@ -431,16 +416,16 @@ export class DropDesigner extends Component {
               source={item.source}
               beginDrag={() => this.setState({ move: i })}
               endDrag={() => this.setState({ move: null })}
-              className={classnames('drop-designer__row drop-designer__content')}
+              className={classnames('drop-designer__row drop-designer__content', 'drop-designer__content--' + item.source.id)}
               render={(drag) => {
                 return (
                   <Section stylesheet={[classnames('drop-designer__item', selected && selected.id === item.id ? 'drop-designer__item--selected' : '', item.source.direction === 'h' ? 'drop-designer__item--horizontal' : 'drop-designer__item--vertical')]}>
-                    <div ref={item.el}></div>
+                    <div className={classnames('drop-designer__item__content')} ref={item.el}></div>
                     <Section stylesheet={[classnames('drop-designer__item__actions')]}>
+                      <span className={classnames('drop-designer__item__move')} ref={drag}><BsArrowsMove /></span>
+                      <If is={!!item.source.props && item.source.props.length > 0} render={() => <Text stylesheet={[classnames('drop-designer__item__operator')]}><BsGear onClick={() => this.handleSelect(item)} /></Text>} />
+                      <Confirm trigger={(show) => <Text stylesheet={[classnames('drop-designer__item__operator')]}><BsTrash onClick={show} /></Text>} onSubmit={() => this.handleRemove(i)} content="确定删除吗？" />
                       <Text stylesheet={[classnames('drop-designer__item__name')]}>{item.source.title + ' ' + item.source.id}</Text>
-                      <span className={classnames('drop-designer__item__move')} ref={drag}><MenuOutlined /></span>
-                      <If is={!!item.source.props && item.source.props.length > 0} render={() => <SettingOutlined onClick={() => this.handleEdit(item)} />} />
-                      <Confirm trigger={(show) => <DeleteOutlined onClick={show} />} onSubmit={() => this.handleRemove(i)} content="确定删除吗？" />
                     </Section>
                   </Section>
                 )

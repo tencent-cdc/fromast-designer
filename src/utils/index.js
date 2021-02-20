@@ -1,5 +1,5 @@
 import styles from '../styles/index.less'
-import { isArray, getObjectHash, isUndefined, isString } from 'ts-fns'
+import { isArray, getObjectHash, isString, compute_ } from 'ts-fns'
 import { generateModel } from '@tencent/formast'
 
 export function createClassNames(config = {}) {
@@ -58,3 +58,57 @@ export function parseKey(str) {
   const macro = _m ? _macro || 'jsx' : void 0
   return [name, params, macro]
 }
+
+export const getConfig = compute_(function(config, defaultConfig = {}) {
+  const groupSet = {}
+  const groups = []
+
+  if (defaultConfig.groups) {
+    defaultConfig.groups.forEach((group) => {
+      const { id } = group
+      groupSet[id] = group
+      groups.push(id)
+    })
+  }
+
+  if (config.groups) {
+    config.groups.forEach((group) => {
+      const { id } = group
+
+      if (groupSet[id]) {
+        const itemSet = {}
+        const itemIds = []
+
+        groupSet[id].items.forEach((item) => {
+          itemIds.push(item.id)
+          itemSet[item.id] = item
+        })
+
+        if (group.items) {
+          group.items.forEach((item) => {
+            if (!itemSet[item.id]) {
+              itemIds.push(item.id)
+            }
+            itemSet[item.id] = item
+          })
+        }
+
+        groupSet[id] = {
+          ...groupSet[id],
+          ...group,
+          items,
+        }
+      }
+      else {
+        groupSet[id] = group
+        groups.push(id)
+      }
+    })
+  }
+
+  return {
+    ...defaultConfig,
+    ...config,
+    groups: groups.map((id) => groupSet[id]),
+  }
+})

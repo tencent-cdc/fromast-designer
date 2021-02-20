@@ -1,5 +1,5 @@
-import layouts from './layouts.config.js'
-import components from './components.config.js'
+import layouts from './layout.config.js'
+import items from './items.config.js'
 
 export default {
 }

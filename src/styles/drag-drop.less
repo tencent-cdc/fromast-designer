@@ -15,6 +15,8 @@
     min-height: 60px;
   }
 }
+
+// drag designer
 @{NAMESPACE}__drag-designer {
   &__source-group {
     margin-bottom: 15px;
@@ -56,6 +58,8 @@
     white-space: nowrap;
   }
 }
+
+// drop designer
 @{NAMESPACE}__drop-designer {
   display: flex;
   flex-direction: column;
@@ -92,7 +96,8 @@
 
   & & {
     min-height: 40px;
-    margin: 0 10px 15px 0;
+    margin: 0 0 15px 0;
+    overflow: hidden;
   }
 
   &__item {
@@ -106,19 +111,22 @@
   }
   &__item__actions {
     position: absolute;
-    bottom: 5px;
-    right: 5px;
+    bottom: 2px;
+    left: 5px;
     z-index: 6;
     display: flex;
     align-items: center;
 
     & > span {
-      margin-left: 5px;
+      margin-right: 6px;
       font-size: .8em;
     }
   }
   &__item__move {
     cursor: move;
+  }
+  &__item__operator {
+    cursor: pointer;
   }
   &__item__name {
     color: #ccc;
@@ -129,118 +137,103 @@
     border: #0b67cf solid 1px;
   }
 
-  &__item--horizontal,
-  &__item--horizontal &__item--vertical &__item--horizontal {
-    @{NAMESPACE}__drop-designer {
-      flex-direction: row;
-      overflow: hidden;
+  @{NAMESPACE}__drop-designer--horizontal {
+    flex-direction: row;
 
-      &__row:last-child {
-        flex: unset;
-      }
-
-      &__content {
-        flex: 1;
-        margin-left: -10px;
-        border-left: rgba(183, 214, 250, 0.3) solid 1px;
-        margin-bottom: 15px;
-
-        &:nth-child(2) {
-          border-left: 0;
-        }
-      }
-      &__dropbox:last-child {
-        margin-left: -10px;
-      }
-
-      @{NAMESPACE}__drop-box {
-        min-width: 10px;
-        margin-bottom: 15px;
-
-        &--over {
-          min-width: 120px;
-        }
-      }
-
-      &__item {
-        border-bottom-color: transparent;
-      }
-      &__item &__item {
-        border-right: rgba(183, 214, 250, 0.3) solid 1px;
-      }
-
-      &__dropbox + @{NAMESPACE}__drag-box,
-      &__dropbox + @{NAMESPACE}__drag-box--outer {
-        margin-top: 0;
-      }
-      @{NAMESPACE}__drop-box--over + @{NAMESPACE}__drag-box,
-      @{NAMESPACE}__drop-box--over + @{NAMESPACE}__drag-box--outer {
-        margin-left: 0;
-      }
-      @{NAMESPACE}__drop-box--over {
-        margin-left: 0;
-      }
-
-      &__dropbox--only {
-        flex: 1 !important;
-        margin: 0 !important;
-        min-height: 30px;
-      }
-
-      &__item--selected {
-        border: #0b67cf solid 1px;
-      }
+    @{NAMESPACE}__drop-designer__row:last-child {
+      flex: unset;
     }
-  }
-  &__item--horizontal &__item--vertical {
-    @{NAMESPACE}__drop-designer {
-      flex-direction: column;
-      margin-bottom: 0;
-      padding-bottom: 15px;
 
-      &__row:last-child {
-        flex: 1;
-      }
+    @{NAMESPACE}__drop-designer__content {
+      flex: 1;
+      margin-left: -10px;
+      margin-top: 0;
+      border-left: rgba(183, 214, 250, 0.3) solid 1px;
+      margin-bottom: 15px;
 
-      &__item {
-        margin-bottom: 15px;
-        border-bottom: rgba(183, 214, 250, 0.3) solid 1px;
-      }
-
-      @{NAMESPACE}__drop-box {
-        min-width: 100%;
-        min-height: 10px;
-        margin-bottom: 0;
-
-        &--over {
-          min-width: auto;
-          min-height: 40px;
-        }
-      }
-
-      &__content {
-        margin-left: 0;
-        margin-bottom: 0;
+      &:nth-child(2) {
         border-left: 0;
       }
+    }
+    @{NAMESPACE}__drop-designer__dropbox:last-child {
+      margin-left: -10px;
+    }
 
-      &__item {
-        margin: 0;
-      }
+    @{NAMESPACE}__drop-box {
+      min-width: 10px;
+      margin-bottom: 15px;
 
-      &__dropbox + @{NAMESPACE}__drag-box,
-      &__dropbox + @{NAMESPACE}__drag-box--outer {
-        margin-top: -10px;
-      }
-      @{NAMESPACE}__drop-box--over + @{NAMESPACE}__drag-box,
-      @{NAMESPACE}__drop-box--over + @{NAMESPACE}__drag-box--outer {
-        margin-top: 0;
-      }
-
-      &__item--selected {
-        border: #0b67cf solid 1px;
+      &--over {
+        min-width: 120px;
       }
     }
+
+    @{NAMESPACE}__drop-box--over + @{NAMESPACE}__drag-box,
+    @{NAMESPACE}__drop-box--over + @{NAMESPACE}__drag-box--outer {
+      margin-left: 0;
+    }
+    @{NAMESPACE}__drop-box--over {
+      margin-left: 0;
+    }
+
+    @{NAMESPACE}__drop-designer__dropbox--only {
+      flex: 1 !important;
+      margin: 0 !important;
+      min-height: 30px;
+    }
+
+    @{NAMESPACE}__drop-designer__item--selected {
+      border: #0b67cf solid 1px;
+    }
+  }
+
+  @{NAMESPACE}__drop-designer--horizontal @{NAMESPACE}__drop-designer--vertical {
+    @{NAMESPACE}__drop-designer__row:last-child {
+      flex: 1;
+    }
+
+  //   @{NAMESPACE}__drop-designer__item {
+  //     margin-bottom: 15px;
+  //     border-bottom: rgba(183, 214, 250, 0.3) solid 1px;
+  //   }
+
+  //   & > @{NAMESPACE}__drop-box {
+  //     min-width: 100%;
+  //     min-height: 10px;
+  //     margin-bottom: 0;
+
+  //     &--over {
+  //       min-width: auto;
+  //       min-height: 40px;
+  //     }
+  //   }
+
+    @{NAMESPACE}__drop-designer__content {
+      margin-left: 0;
+      margin-bottom: 0;
+      border-left: 0;
+    }
+
+    @{NAMESPACE}__drop-box {
+      margin-bottom: 0;
+    }
+
+  //   @{NAMESPACE}__drop-designer__item {
+  //     margin: 0;
+  //   }
+
+    @{NAMESPACE}__drop-designer__dropbox + @{NAMESPACE}__drag-box,
+    @{NAMESPACE}__drop-designer__dropbox + @{NAMESPACE}__drag-box--outer {
+      margin-top: -10px;
+    }
+    @{NAMESPACE}__drop-box--over + @{NAMESPACE}__drag-box,
+    @{NAMESPACE}__drop-box--over + @{NAMESPACE}__drag-box--outer {
+      margin-top: 0;
+    }
+
+  //   @{NAMESPACE}__drop-designer__item--selected {
+  //     border: #0b67cf solid 1px;
+  //   }
   }
 
 }

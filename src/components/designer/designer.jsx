@@ -1,21 +1,21 @@
 import { React, Component, Section, ifexist, Any, nonable, Int } from 'nautil'
 import { classnames } from '../../utils'
-import { DragDesigner, DropDesigner, Monitor } from '../drag-drop/drag-drop-designer.jsx'
+import { DragDesigner, DropDesigner, ConfigType } from '../drag-drop/drag-drop-designer.jsx'
 import { each } from 'ts-fns'
 
 export class Designer extends Component {
   static props = {
     elements: nonable(Array),
-    config: Object,
+    config: ConfigType,
     buttons: ifexist(Any),
     settings: ifexist(Any),
     onRemove: true,
     onSelect: true,
     onChange: true,
     expParser: ifexist(Function),
-    selected: nonable(Monitor),
     max: nonable(Int),
   }
+  static propsCheckAsync = true
 
   handleRemove = (monitor) => {
     const { onRemove } = this.props
@@ -52,23 +52,23 @@ export class Designer extends Component {
   }
 
   render() {
-    const { elements, config, buttons, settings, selected, expParser, max } = this.props
+    const { elements, config, buttons, settings, expParser, max } = this.props
 
     return (
       <>
         <Section stylesheet={[classnames('main designer__main')]}>
           {buttons ? <Section stylesheet={[classnames('designer__buttons')]}>{buttons}</Section> : null}
-          <DropDesigner
-            className={classnames('designer__canvas')}
-            onChange={this.handleChange}
-            onSelect={this.handleSelect}
-            onRemove={this.handleRemove}
-            expParser={expParser}
-            selected={selected}
-            max={max}
-            config={config}
-            elements={elements}
-          />
+          <Section stylesheet={classnames('designer__canvas')}>
+            <DropDesigner
+              onChange={this.handleChange}
+              onSelect={this.handleSelect}
+              onRemove={this.handleRemove}
+              expParser={expParser}
+              max={max}
+              config={config}
+              elements={elements}
+            />
+          </Section>
           {settings ? <Section stylesheet={[classnames('designer__settings')]}>{settings}</Section> : null}
         </Section>
         <Section stylesheet={[classnames('sidebar sidebar--right designer__sidebar dragable')]}>

@@ -38,7 +38,6 @@ export class LayoutDesigner extends Component {
     }
 
     onChange(layout)
-    console.log(layout)
 
     Popup.toast('保存配置成功')
   }

@@ -4,7 +4,7 @@ import { Button } from '../button/button.jsx'
 import { classnames } from '../../utils'
 import { Close } from '../close/close.jsx'
 
-export const Modal = React.memo((props) => {
+export const Modal = (props) => {
   const { isShow, onClose, title, children, onCancel, onSubmit, disableCancel, disableClose, keepAlive, width } = props
   return (
     <Section stylesheet={[classnames('modal', isShow ? 'modal--show' : 'modal--hidden')]}>
@@ -19,7 +19,7 @@ export const Modal = React.memo((props) => {
       </Section>
     </Section>
   )
-})
+}
 export default Modal
 
 

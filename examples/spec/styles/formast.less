@@ -2,9 +2,6 @@
   &__input,
   &__textarea,
   &__select {
-    margin: 10px;
-    margin-bottom: 20px;
-    width: calc(100% - 40px);
     background-color: #fff;
     border: #dedede solid 1px;
     padding: 5px;
@@ -24,16 +21,16 @@
     min-height: 40px;
   }
 
-  // &__form-view {
-  //   width: 600px;
-  // }
+  &__form-view {
+    width: 600px;
+  }
 }
 
 .formast-designer__drop-designer {
-  // &__content--FormView {
-  //   max-width: 600px;
-  // }
-  // &__content--FormView + &__dropbox:last-child {
-  //   flex: 1;
-  // }
+  &__content--FormView {
+    max-width: 600px;
+  }
+  &__content--FormView + &__dropbox:last-child {
+    flex: 1;
+  }
 }

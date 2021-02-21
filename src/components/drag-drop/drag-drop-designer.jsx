@@ -266,7 +266,7 @@ export class DropDesigner extends Component {
       }).filter(item => !!item)
     }
     createAndPutItems(elements)
-    this.update()
+    this.forceUpdate()
 
     setTimeout(() => {
       this.handleChange()
@@ -317,7 +317,7 @@ export class DropDesigner extends Component {
     }
 
     const item = this.createAndPutItem(i, source)
-    this.update()
+    this.forceUpdate()
 
     setTimeout(() => {
       this.handleChange()
@@ -358,16 +358,13 @@ export class DropDesigner extends Component {
       onChange(this.items.filter(item => !!item))
     }
   }
-  handleRemove = (i) => {
-    const item = this.items[i]
-    if (!item) {
-      return
-    }
-
+  handleRemove = (item) => {
     // 卸载DOM
     item.source.unmount(item.el.current)
+
+    const i = this.items.findIndex(one => one === item)
     this.items.splice(i, 2)
-    this.update()
+    this.forceUpdate()
 
     const { onRemove } = this.props
     onRemove && onRemove(item)
@@ -419,12 +416,21 @@ export class DropDesigner extends Component {
               className={classnames('drop-designer__row drop-designer__content', 'drop-designer__content--' + item.source.id)}
               render={(drag) => {
                 return (
-                  <Section stylesheet={[classnames('drop-designer__item', selected && selected.id === item.id ? 'drop-designer__item--selected' : '', item.source.direction === 'h' ? 'drop-designer__item--horizontal' : 'drop-designer__item--vertical')]}>
+                  <Section stylesheet={[
+                    classnames(
+                      'drop-designer__item',
+                      selected && selected.id === item.id ? 'drop-designer__item--selected' : '',
+                      // 自定义纵横模式
+                      item.source.direction === 'h' ? 'drop-designer__item--horizontal' : 'drop-designer__item--vertical',
+                    ),
+                    // 支持自定义背景色
+                    item.source.color ? { backgroundColor: item.source.color } : null,
+                  ]}>
                     <div className={classnames('drop-designer__item__content')} ref={item.el}></div>
                     <Section stylesheet={[classnames('drop-designer__item__actions')]}>
                       <span className={classnames('drop-designer__item__move')} ref={drag}><BsArrowsMove /></span>
                       <If is={!!item.source.props && item.source.props.length > 0} render={() => <Text stylesheet={[classnames('drop-designer__item__operator')]}><BsGear onClick={() => this.handleSelect(item)} /></Text>} />
-                      <Confirm trigger={(show) => <Text stylesheet={[classnames('drop-designer__item__operator')]}><BsTrash onClick={show} /></Text>} onSubmit={() => this.handleRemove(i)} content="确定删除吗？" />
+                      <Confirm trigger={(show) => <Text stylesheet={[classnames('drop-designer__item__operator')]}><BsTrash onClick={show} /></Text>} onSubmit={() => this.handleRemove(item)} content="确定删除吗？" />
                       <Text stylesheet={[classnames('drop-designer__item__name')]}>{item.source.title + ' ' + item.source.id}</Text>
                     </Section>
                   </Section>

@@ -20,7 +20,7 @@ export const ConfigType = new Dict({
         {
           id: String,
           title: String,
-          icon: new Enum(Object.keys(icons)),
+          icon: ifexist(new Enum(Object.keys(icons))),
           direction: ifexist('h'),
           props: ifexist([
             {
@@ -61,9 +61,9 @@ export class DragDesigner extends Component {
                 return (
                   <DragBox key={title} source={item}>
                     <Section stylesheet={[classnames('drag-designer__source-item')]}>
-                      <Icon />
+                      {Icon ? <Icon /> : null}
                       <Text stylesheet={[classnames('drag-designer__source-item__text')]}>{title}</Text>
-                      <Text stylesheet={[classnames('drag-designer__source-item__id')]}>{id}</Text>
+                      {title !== id ? <Text stylesheet={[classnames('drag-designer__source-item__id')]}>{id}</Text> : null}
                     </Section>
                   </DragBox>
                 )
@@ -431,7 +431,7 @@ export class DropDesigner extends Component {
                       <span className={classnames('drop-designer__item__move')} ref={drag}><BsArrowsMove /></span>
                       <If is={!!item.source.props && item.source.props.length > 0} render={() => <Text stylesheet={[classnames('drop-designer__item__operator')]}><BsGear onClick={() => this.handleSelect(item)} /></Text>} />
                       <Confirm trigger={(show) => <Text stylesheet={[classnames('drop-designer__item__operator')]}><BsTrash onClick={show} /></Text>} onSubmit={() => this.handleRemove(item)} content="确定删除吗？" />
-                      <Text stylesheet={[classnames('drop-designer__item__name')]}>{item.source.title + ' ' + item.source.id}</Text>
+                      <Text stylesheet={[classnames('drop-designer__item__name')]}>{item.source.title + (item.source.title !== item.source.id ? ' ' + item.source.id : '')}</Text>
                     </Section>
                   </Section>
                 )

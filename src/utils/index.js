@@ -1,5 +1,5 @@
 import styles from '../styles/index.less'
-import { isArray, getObjectHash, isString, compute_ } from 'ts-fns'
+import { isArray, getObjectHash, isString, compute_, isUndefined } from 'ts-fns'
 import { generateModel } from '@tencent/formast'
 
 export function createClassNames(config = {}) {
@@ -61,13 +61,29 @@ export function parseKey(str) {
 
 export const getConfig = compute_(function(config, defaultConfig = {}) {
   const groupSet = {}
-  const groups = []
+
+  const sorter = (a, b) => {
+    if (isUndefined(b.sort)) {
+      return -1
+    }
+    else if (isUndefined(a.sort)) {
+      return 1
+    }
+    else if (a.sort < b.sort) {
+      return -1
+    }
+    else if (a.sort > b.sort) {
+      return 1
+    }
+    else {
+      return 0
+    }
+  }
 
   if (defaultConfig.groups) {
     defaultConfig.groups.forEach((group) => {
       const { id } = group
       groupSet[id] = group
-      groups.push(id)
     })
   }
 
@@ -77,21 +93,19 @@ export const getConfig = compute_(function(config, defaultConfig = {}) {
 
       if (groupSet[id]) {
         const itemSet = {}
-        const itemIds = []
 
         groupSet[id].items.forEach((item) => {
-          itemIds.push(item.id)
           itemSet[item.id] = item
         })
 
         if (group.items) {
           group.items.forEach((item) => {
-            if (!itemSet[item.id]) {
-              itemIds.push(item.id)
-            }
             itemSet[item.id] = item
           })
         }
+
+        const items = Object.values(itemSet)
+        items.sort(sorter)
 
         groupSet[id] = {
           ...groupSet[id],
@@ -101,14 +115,16 @@ export const getConfig = compute_(function(config, defaultConfig = {}) {
       }
       else {
         groupSet[id] = group
-        groups.push(id)
       }
     })
   }
 
+  const groups = Object.values(groupSet)
+  groups.sort(sorter)
+
   return {
     ...defaultConfig,
     ...config,
-    groups: groups.map((id) => groupSet[id]),
+    groups,
   }
 })

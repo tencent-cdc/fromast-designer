@@ -1,13 +1,15 @@
 import { React, Component, Section, Text, If, Switch, Case } from 'nautil'
+import { render, unmount } from 'nautil/dom'
 import { classnames, getConfig } from '../utils'
 import { Form, FormItem, Label, Input } from '../components/form/form.jsx'
 import { RichPropEditor } from '../components/rich-prop-editor/rich-prop-editor.jsx'
 import { Button } from '../components/button/button.jsx'
 import { Popup } from '../libs/popup.js'
-import { find } from 'ts-fns'
+import { find, compute_ } from 'ts-fns'
 import { Designer } from '../components/designer/designer.jsx'
 import ScopeX from 'scopex'
 import DefaultLayoutConfig from '../config/layout.jsx'
+import { AutoModal } from '../components/modal/modal.jsx'
 
 export class LayoutDesigner extends Component {
   state = {
@@ -63,10 +65,50 @@ export class LayoutDesigner extends Component {
     return scopex.parse(exp)
   }
 
+  getItemsConfig = compute_(function(itemsJSON) {
+    if (!itemsJSON) {
+      return {}
+    }
+
+    const names = Object.keys(itemsJSON)
+    if (!names.length) {
+      return {}
+    }
+
+    const config = {
+      groups: [
+        {
+          id: 'components',
+          title: '组件素材',
+          sort: 0,
+          items: names.map((name) => {
+            const item = {
+              id: name,
+              title: name,
+              mount(el) {
+                render(el, <BuiltinItem name={name} data={itemsJSON[name]} />)
+              },
+              update(el) {
+                item.mount(el)
+              },
+              unmount(el) {
+                unmount(el)
+              },
+            }
+            return item
+          }),
+        },
+      ]
+    }
+    return config
+  })
+
   render() {
     const { selectedMonitor } = this.state
     const { layoutJSON, itemsJSON, config } = this.props
-    const sourceConfig = getConfig(config, DefaultLayoutConfig)
+
+    const itemsConfig = this.getItemsConfig(itemsJSON)
+    const sourceConfig = getConfig(itemsConfig, getConfig(config, DefaultLayoutConfig))
 
     const jsx = find(layoutJSON, (_, key) => /^render\(.*?\)!$/.test(key))
     const elements = jsx && [jsx]
@@ -134,3 +176,17 @@ export class LayoutDesigner extends Component {
   }
 }
 export default LayoutDesigner
+
+class BuiltinItem extends Component {
+  render() {
+    const { name, data } = this.props
+    return (
+      <div className={classnames('builtin-item')}>
+        <span>{`<${name} />`}</span>
+        <AutoModal trigger={(show) => <button className={classnames('builtin-item__button')} onClick={show}>详情</button>} title="组件配置信息" disableCancel>
+          <pre className={classnames('builtin-item__preview')}>{JSON.stringify(data, null, 4)}</pre>
+        </AutoModal>
+      </div>
+    )
+  }
+}

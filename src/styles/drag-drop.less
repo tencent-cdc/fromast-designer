@@ -65,11 +65,11 @@
   flex-direction: column;
   overflow: auto;
 
-  &__dropbox {
+  @{NAMESPACE}__drop-box {
     position: relative;
     z-index: 5;
     min-height: 10px;
-    transition: min-height .2s, min-width .2s, background-color .2s, height .2s, width .2s;
+    transition: min-height .05s, min-width .05s, background-color .05s, height .05s, width .05s;
 
     &--over {
       min-height: 60px;
@@ -120,13 +120,11 @@
 
   &--vertical {
     & > @{NAMESPACE}__drop-box + @{NAMESPACE}__drag-box,
-    & > @{NAMESPACE}__drop-box + @{NAMESPACE}__drag-box--outer,
-    & > @{NAMESPACE}__drop-box:last-of-type {
+    & > @{NAMESPACE}__drop-box + @{NAMESPACE}__drag-box--outer {
       margin-top: -10px;
     }
     & > @{NAMESPACE}__drop-box--over + @{NAMESPACE}__drag-box,
-    & > @{NAMESPACE}__drop-box--over + @{NAMESPACE}__drag-box--outer
-    & > @{NAMESPACE}__drop-box--over:last-of-type {
+    & > @{NAMESPACE}__drop-box--over + @{NAMESPACE}__drag-box--outer {
       margin-top: 0;
     }
   }
@@ -150,6 +148,7 @@
 
     & > @{NAMESPACE}__drop-box {
       min-width: 10px;
+      z-index: 6;
 
       &--over {
         min-width: 120px;
@@ -219,4 +218,15 @@
     }
   }
 
+  @{NAMESPACE}__builtin-item {
+    padding: 10px;
+
+    &__button {
+      border: 0;
+      background: none;
+      cursor: pointer;
+      color: #999;
+      font-size: .8em;
+    }
+  }
 }

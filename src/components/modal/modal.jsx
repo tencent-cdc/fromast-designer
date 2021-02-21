@@ -39,7 +39,7 @@ export function AutoModal(props) {
 
   const handleSubmit = useCallback(() => {
     const res = onSubmit && onSubmit()
-    if (res) {
+    if (res || !onSubmit) {
       toggleShow(false)
     }
   }, [])

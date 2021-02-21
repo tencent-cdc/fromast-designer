@@ -1,6 +1,6 @@
 import './styles/formast.less'
 
-import { createFormastEditor } from 'formast-designer'
+import { createFormastEditor } from '../../src/index.js'
 import config from './config'
 import { Popup } from '../../src/libs/popup.js'
 

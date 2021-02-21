@@ -63,6 +63,9 @@ export const getConfig = compute_(function(config, defaultConfig = {}) {
   const groupSet = {}
 
   const sorter = (a, b) => {
+    if (isUndefined(a.sort) && isUndefined(b.sort)) {
+      return 0
+    }
     if (isUndefined(b.sort)) {
       return -1
     }

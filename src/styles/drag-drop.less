@@ -133,6 +133,10 @@
     flex-direction: row;
     overflow: hidden;
 
+    & > @{NAMESPACE}__drop-designer__row:last-of-type {
+      flex: unset;
+    }
+
     & > @{NAMESPACE}__drop-designer__content {
       flex: 1;
       margin-left: -10px;

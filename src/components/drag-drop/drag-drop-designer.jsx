@@ -20,7 +20,7 @@ export const ConfigType = new Dict({
         {
           id: String,
           title: String,
-          icon: ifexist(new Enum(Object.keys(icons))),
+          icon: ifexist(String),
           direction: ifexist('h'),
           props: ifexist([
             {

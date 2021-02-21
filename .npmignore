@@ -2,4 +2,4 @@
 examples/
 .cache/
 code.yml
-dist/
+webpack.config.js

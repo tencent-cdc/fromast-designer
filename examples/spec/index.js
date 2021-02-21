@@ -1,10 +1,10 @@
 import './styles/formast.less'
 
-import { createFormastEditor } from '../../src/index.js'
+import { createFormastDesigner } from '../../src/index.js'
 import config from './config'
 import { Popup } from '../../src/libs/popup.js'
 
-const editor = createFormastEditor(config, '#form-editor')
+const editor = createFormastDesigner('#form-editor', config)
 
 const json = sessionStorage.getItem('__JSON__')
 if (json) {

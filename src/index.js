@@ -4,7 +4,7 @@ import { Popup } from './libs/popup.js'
 
 import App from './app/app.jsx'
 
-export class FormastEditor {
+export class FormastDesigner {
   constructor(config = {}) {
     this.emitters = []
     this.config = config
@@ -104,8 +104,8 @@ export class FormastEditor {
   }
 }
 
-export function createFormastEditor(config, el) {
-  const editor = new FormastEditor(config)
+export function createFormastDesigner(el, config = {}) {
+  const editor = new FormastDesigner(config)
 
   if (el) {
     editor.mount(el)

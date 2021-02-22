@@ -3,3 +3,4 @@ examples/
 .cache/
 code.yml
 webpack.config.js
+docs/

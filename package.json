@@ -7,7 +7,8 @@
     "dev": "parcel examples/spec/index.html --out-dir .cache/.dist",
     "build:bundle": "NODE_ENV=production webpack",
     "build:module": "EXPOSE_MODULE=1 NODE_ENV=production webpack",
-    "build": "npm run build:module && npm run build:bundle"
+    "build": "npm run build:module && npm run build:bundle",
+    "build:docs": "parcel build examples/spec/index.html --out-dir docs"
   },
   "repository": {
     "type": "git",

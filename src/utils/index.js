@@ -59,7 +59,7 @@ export function parseKey(str) {
   return [name, params, macro]
 }
 
-export const getConfig = compute_(function(config, defaultConfig = {}) {
+export const getConfig = compute_(function(config = {}, defaultConfig = {}) {
   const groupSet = {}
 
   const sorter = (a, b) => {

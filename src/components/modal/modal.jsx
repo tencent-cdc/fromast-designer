@@ -5,9 +5,9 @@ import { classnames } from '../../utils'
 import { Close } from '../close/close.jsx'
 
 export const Modal = (props) => {
-  const { isShow, onClose, title, children, onCancel, onSubmit, disableCancel, disableClose, keepAlive, width } = props
+  const { isShow, onClose, title, children, onCancel, onSubmit, disableCancel, disableClose, keepAlive, width, className } = props
   return (
-    <Section stylesheet={[classnames('modal', isShow ? 'modal--show' : 'modal--hidden')]}>
+    <Section stylesheet={[classnames('modal', isShow ? 'modal--show' : 'modal--hidden'), className]}>
       <Section stylesheet={[classnames('modal-container'), width ? { width } : null]}>
         {!disableClose ? <Close stylesheet={[classnames('modal-close')]} onHit={onClose} /> : null}
         {title ? <Section stylesheet={[classnames('modal-title')]}>{title}</Section> : null}

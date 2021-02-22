@@ -1,4 +1,4 @@
-import { React, Component, useState, useRef, Section, useCallback, produce, Fragment, useEffect } from 'nautil'
+import { React, Component, useState, useRef, Section, useCallback, produce, useEffect, If, Validator } from 'nautil'
 import { isEmpty, each } from 'ts-fns'
 import { Button } from '../components/button/button.jsx'
 import { Modal } from '../components/modal/modal.jsx'
@@ -9,6 +9,8 @@ import { Close } from '../components/close/close.jsx'
 import { Confirm } from '../components/confirm/confirm.jsx'
 import { RichPropEditor } from '../components/rich-prop-editor/rich-prop-editor.jsx'
 import { VALUE_TYPES } from '../config/constants.js'
+import { Popup } from '../libs/popup.js'
+import ScopeX from 'scopex'
 
 export class SchemaDesigner extends Component {
   state = {
@@ -69,6 +71,10 @@ export class SchemaDesigner extends Component {
       const keys = Object.keys(attrs)
       for (let i = 0, len = keys.length; i < len; i ++) {
         const key = keys[i]
+        // default 字段可以为空
+        if (key === 'default') {
+          continue
+        }
         if (attrs[key] === '') {
           return popup.toast(`${key}必须填写`)
         }
@@ -159,7 +165,7 @@ class MetaForm extends Component {
       value: '',
     },
     type: {
-      type: VALUE_TYPES.EXP,
+      type: VALUE_TYPES.STR,
       params: '',
       value: '',
     },
@@ -183,12 +189,17 @@ class MetaForm extends Component {
 
   parseMetaToJSON(state) {
     const { field, ...data } = state
-    const parse = ({ type, params, value }) => {
+    const parse = ({ type, params, value }, key) => {
       if (type === VALUE_TYPES.STR) {
         return ['', value]
       }
       else if (type === VALUE_TYPES.EXP) {
-        return ['', JSON.parse(value)]
+        try {
+          return ['', value ? JSON.parse(value) : value]
+        }
+        catch (e) {
+          throw new Error(`${key} 必须是一个合法的表达式`)
+        }
       }
       else if (type === VALUE_TYPES.FN) {
         return [`(${params})`, value]
@@ -197,11 +208,25 @@ class MetaForm extends Component {
     const meta = {}
     each(data, (v, key) => {
       if (key === 'validators') {
-        meta.validators = v.map((item) => {
+        meta.validators = v.map((item, i) => {
           const { message, validate, determine } = item
-          const [dp, dv] = parse(determine)
-          const [vp, vv] = parse(validate)
-          const [mp, mv] = parse(message)
+
+          // 非函数形式
+          // tyshemo.Loader 支持形式如 validators: [ "required('some is required!')" ] 的校验器
+          if (validate.type === VALUE_TYPES.EXP) {
+            const [key, params] = validate.value ? parseKey(validate.value) : []
+            if (Validator[key] && params) {
+              const validator = validate.value
+              return validator
+            }
+            else {
+              throw new Error(`validators[${i}].validate 填写的表达式不符合内置校验器写法`)
+            }
+          }
+
+          const [dp, dv] = parse(determine, `validators[${i}].determine`)
+          const [vp, vv] = parse(validate, `validators[${i}].validate`)
+          const [mp, mv] = parse(message, `validators[${i}].message`)
           const validator = {
             [`determine${dp}`]: dv,
             [`validate${vp}`]: vv,
@@ -211,7 +236,7 @@ class MetaForm extends Component {
         })
       }
       else {
-        const [params, exp] = parse(v)
+        const [params, exp] = parse(v, key)
         meta[key + params] = exp
       }
     })
@@ -272,8 +297,13 @@ class MetaForm extends Component {
 
   handleSubmit = () => {
     const state = this.state
-    const json = this.parseMetaToJSON(state)
-    this.props.onSubmit(json)
+    try {
+      const json = this.parseMetaToJSON(state)
+      this.props.onSubmit(json)
+    }
+    catch (e) {
+      Popup.toast(e)
+    }
   }
 
   Render() {
@@ -343,7 +373,7 @@ class MetaForm extends Component {
     const customKeys = Object.keys(customs)
 
     return (
-      <Modal isShow={isShow} width={width} title={title} onSubmit={this.handleSubmit} onCancel={onCancel} onClose={onClose}>
+      <Modal isShow={isShow} width={width} title={title} onSubmit={this.handleSubmit} onCancel={onCancel} onClose={onClose} className={classnames('schema-designer__modal')}>
         <Form aside={aside}>
           <FormItem>
             <Label>字段 Key</Label>
@@ -378,14 +408,16 @@ class MetaForm extends Component {
                 return (
                   <>
                     <FormItem stylesheet={[classnames('form-item--rich')]}>
-                      <RichPropEditor label="是否校验(determine)" types={[VALUE_TYPES.EXP, VALUE_TYPES.FN]} data={validator.determine} onChange={determine => onChange({ determine })} />
+                      <RichPropEditor label="校验函数(validate)" types={[VALUE_TYPES.EXP, VALUE_TYPES.FN]} data={validator.validate} onChange={validate => onChange({ validate })} />
                     </FormItem>
-                    <FormItem stylesheet={[classnames('form-item--rich')]}>
-                      <RichPropEditor label="校验函数(validate)" types={[VALUE_TYPES.FN]} data={validator.validate} onChange={validate => onChange({ validate })} />
-                    </FormItem>
-                    <FormItem stylesheet={[classnames('form-item--rich')]}>
-                      <RichPropEditor label="消息(message)" types={[VALUE_TYPES.STR ,VALUE_TYPES.EXP, VALUE_TYPES.FN]} data={validator.message} onChange={message => onChange({ message })} />
-                    </FormItem>
+                    <If is={validator.validate.type === VALUE_TYPES.FN}>
+                      <FormItem stylesheet={[classnames('form-item--rich')]}>
+                        <RichPropEditor label="是否校验(determine)" types={[VALUE_TYPES.EXP, VALUE_TYPES.FN]} data={validator.determine} onChange={determine => onChange({ determine })} />
+                      </FormItem>
+                      <FormItem stylesheet={[classnames('form-item--rich')]}>
+                        <RichPropEditor label="消息(message)" types={[VALUE_TYPES.STR ,VALUE_TYPES.EXP, VALUE_TYPES.FN]} data={validator.message} onChange={message => onChange({ message })} />
+                      </FormItem>
+                    </If>
                     {i !== validators.length - 1 ? <Section stylesheet={[classnames('line')]} /> : null}
                   </>
                 )

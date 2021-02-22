@@ -12,7 +12,7 @@ npm i @tencent/formast-designer --registry=https://mirrors.tencent.com/npm/
 你也可以通过 CDN 进行引用。
 
 ```html
-<script src="https://cdn-go.cn/tisontang/formast-designer/{version}/browser.js"></script>
+<script src="/formast-designer/dist/browser.js"></script>
 ```
 
 CDN 引用时，接口通过 `window['formast-designer']` 导出。

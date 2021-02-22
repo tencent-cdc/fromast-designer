@@ -24,17 +24,17 @@ $:
 master:
   push:
     - docker:
-      image: node:12
-    runner:
-      network: devnet
-    stages:
-      - name: 安装依赖
-        script:
-          - npm install
-      - name: 构建
-        script:
-          - npm run build:docs
-      - name: 发布 oa-pages
-        type: git:oa-pages
-        options:
-          publishDir: docs
+        image: node:12
+      runner:
+        network: devnet
+      stages:
+        - name: 安装依赖
+          script:
+            - npm install
+        - name: 构建
+          script:
+            - npm run build:docs
+        - name: 发布 oa-pages
+          type: git:oa-pages
+          options:
+            publishDir: docs

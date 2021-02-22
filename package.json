@@ -1,6 +1,6 @@
 {
   "name": "@tencent/formast-designer",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Formast（帆桅）表单可视化设计器",
   "main": "dist/index.js",
   "scripts": {

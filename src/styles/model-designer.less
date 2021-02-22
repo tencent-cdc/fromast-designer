@@ -1,12 +1,33 @@
 @import "./_vars.less";
 
 @{NAMESPACE}__model-designer {
-  @{NAMESPACE}__sidebar--left {
-    width: 200px;
+  &__submodel {
+    padding: 5px 10px;
+    margin-left: 5px;
+    border-bottom: #f1f1f1 solid 1px;
+    cursor: pointer;
+    transition: background-color .2s;
+
+    &:hover {
+      background-color: #f9f9f9;
+    }
+
+    &--active {
+      background-color: #e4f1ff;
+    }
+
+    & + button {
+      margin-top: 20px;
+    }
   }
 
-  @{NAMESPACE}__sidebar--right {
-    width: 400px;
+  &__submodel-modal--step-1 {
+    @{NAMESPACE}__modal-container {
+      min-width: 900px;
+    }
+    @{NAMESPACE}__modal-content {
+      min-height: 400px;
+    }
   }
 
   &__cat-item {

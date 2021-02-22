@@ -1,7 +1,7 @@
 import { React, Component, useState, useRef, Section, useCallback, produce, useEffect, If, Validator } from 'nautil'
 import { isEmpty, each } from 'ts-fns'
 import { Button } from '../components/button/button.jsx'
-import { Modal } from '../components/modal/modal.jsx'
+import { Modal, AutoModal } from '../components/modal/modal.jsx'
 import { Form, FormItem, Label, Input, FormLoop } from '../components/form/form.jsx'
 import { classnames, parseKey } from '../utils'
 import { usePopup } from '../hooks/popup.js'
@@ -10,7 +10,6 @@ import { Confirm } from '../components/confirm/confirm.jsx'
 import { RichPropEditor } from '../components/rich-prop-editor/rich-prop-editor.jsx'
 import { VALUE_TYPES } from '../config/constants.js'
 import { Popup } from '../libs/popup.js'
-import ScopeX from 'scopex'
 
 export class SchemaDesigner extends Component {
   state = {
@@ -23,6 +22,12 @@ export class SchemaDesigner extends Component {
   }
 
   handleEditField = (field) => {
+    if (/^<.*?>$/.test(field)) {
+      const { EditSubmodel } = this.props
+      EditSubmodel(field)
+      return
+    }
+
     const { schemaJSON = {} } = this.props
     const meta = schemaJSON[field]
     if (meta) {
@@ -40,7 +45,7 @@ export class SchemaDesigner extends Component {
   }
 
   Render() {
-    const { schemaJSON = {} } = this.props
+    const { schemaJSON = {}, CreateSubmodel } = this.props
     const fields = Object.keys(schemaJSON)
 
     const popup = usePopup()
@@ -87,6 +92,10 @@ export class SchemaDesigner extends Component {
         [field]: meta,
       }
 
+      if (!next.validators.length) {
+        delete next.validators
+      }
+
       if (this.state.editData && this.state.editData[0] !== field) {
         delete next[this.state.editData[0]]
       }
@@ -102,7 +111,7 @@ export class SchemaDesigner extends Component {
           {fields.map((field) => {
             return (
               <Section stylesheet={[classnames('schema-designer__field')]} key={field}>
-                <Section stylesheet={[classnames('schema-designer__field-label')]}>{field + '(' + schemaJSON[field].label + ')'}</Section>
+                <Section stylesheet={[classnames('schema-designer__field-label')]}>{field + (schemaJSON[field].label ? '(' + schemaJSON[field].label + ')' : '')}</Section>
                 <Button primary onHit={() => this.handleEditField(field)}>编辑</Button>
                 <Confirm
                   content="确定要删除该字段吗？"
@@ -115,6 +124,9 @@ export class SchemaDesigner extends Component {
 
           <Section stylesheet={classnames('schema-designer__buttons')}>
             <Button primary onHit={this.handleAddField}>添加新字段</Button>
+            {CreateSubmodel(
+              show => <Button primary onHit={show}>添加子模型</Button>,
+            )}
           </Section>
         </Section>
 
@@ -448,3 +460,5 @@ class MetaForm extends Component {
     )
   }
 }
+
+export default SchemaDesigner

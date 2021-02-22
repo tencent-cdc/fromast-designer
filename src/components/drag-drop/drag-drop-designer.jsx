@@ -327,7 +327,7 @@ export class DropDesigner extends Component {
   canDrop = (current) => {
     const { source, max } = this.props
     if (source && source.allows) {
-      return source.allows.includes(current.id)
+      return source.allows.includes(current.id) || (current.tag && source.allows.includes(current.tag))
     }
     else if (current.needs) {
       return source ? current.needs.includes(source.id) : false

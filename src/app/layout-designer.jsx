@@ -85,6 +85,7 @@ export class LayoutDesigner extends Component {
             const item = {
               id: name,
               title: name,
+              tag: 'builtin-component',
               mount(el) {
                 render(el, <BuiltinItem name={name} data={itemsJSON[name]} />)
               },

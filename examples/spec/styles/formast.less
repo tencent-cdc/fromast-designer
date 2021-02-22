@@ -30,7 +30,7 @@
   &__content--FormView {
     max-width: 600px;
   }
-  &__content--FormView + &__dropbox:last-child {
-    flex: 1;
+  &__content--FormView + &__dropbox:last-of-type {
+    flex: 1 !important; // 强制沾满最后一格
   }
 }

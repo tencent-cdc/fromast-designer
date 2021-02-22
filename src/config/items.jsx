@@ -244,7 +244,7 @@ const FormCellLayout = {
   icon: 'BsApp',
 
   needs: ['FormItem'],
-  allows: ['Input', 'Textarea', 'Select'],
+  allows: ['Input', 'Textarea', 'Select', 'builtin-component'],
 
   mount(el, monitor) {
     const { DropBox } = monitor

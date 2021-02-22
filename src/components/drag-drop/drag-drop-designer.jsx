@@ -30,6 +30,7 @@ export const ConfigType = new Dict({
               defender: ifexist(Function),
             }
           ]),
+          tag: ifexist(String),
           needs: ifexist([String]),
           allows: ifexist([String]),
           mount: Function,
@@ -330,7 +331,7 @@ export class DropDesigner extends Component {
       return source.allows.includes(current.id) || (current.tag && source.allows.includes(current.tag))
     }
     else if (current.needs) {
-      return source ? current.needs.includes(source.id) : false
+      return source ? current.needs.includes(source.id) || (source.tag && current.needs.includes(source.tag)) : false
     }
     else if (source && source.max&& !this.state.move) {
       return this.items.filter(item => !!item).length < source.max

@@ -38,7 +38,7 @@ class App extends Component {
   }
 
   render() {
-    const { config, onSave, onReset, onDownload, json, onImport } = this.props
+    const { config = {}, onSave, onReset, onExport, json, onImport } = this.props
     const { activeTopTab } = this.state
     const setActiveTopTab = (activeTopTab) => this.setState({ activeTopTab })
     const { model: modelJSON, items = {}, layout = {} } = json || {}
@@ -54,12 +54,12 @@ class App extends Component {
               {!config.disableSave ? <Button primary onHit={() => onSave()}>保存</Button> : null}
               {!config.disableReset ? <Button secondary onHit={() => onReset()}>重置</Button> : null}
               {!config.disableImport ? <Button secondary onHit={() => onImport()}>导入</Button> : null}
-              {!config.disableDownload ? <Button secondary onHit={() => onDownload()}>导出</Button> : null}
+              {!config.disableExport ? <Button secondary onHit={() => onExport()}>导出</Button> : null}
             </Section>
           </Section>
-          {activeTopTab === 0 ? <ModelDesigner config={config} modelJSON={modelJSON} onModelJSONChange={this.handleModelJSONChange} /> : null}
-          {activeTopTab === 1 ? <ItemsDesigner config={config} json={items} onChange={this.handleItemsChange} /> : null}
-          {activeTopTab === 2 ? <LayoutDesigner config={config} layoutJSON={layout} itemsJSON={items} onChange={this.handleLayoutChange} /> : null}
+          {activeTopTab === 0 ? <ModelDesigner config={config.modelSetting} modelJSON={modelJSON} onModelJSONChange={this.handleModelJSONChange} /> : null}
+          {activeTopTab === 1 ? <ItemsDesigner config={config.itemsSetting} json={items} onChange={this.handleItemsChange} /> : null}
+          {activeTopTab === 2 ? <LayoutDesigner config={config.layoutSetting} layoutJSON={layout} itemsJSON={items} onChange={this.handleLayoutChange} /> : null}
         </Section>
       </DndProvider>
     )

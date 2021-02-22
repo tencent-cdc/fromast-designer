@@ -9,7 +9,7 @@ module.exports = {
     filename: process.env.EXPOSE_MODULE ? 'index.js' : 'browser.js',
     library: {
       type: 'umd',
-      name: 'FormastDesigner',
+      name: 'formast-designer',
     },
     globalObject: 'window',
   },

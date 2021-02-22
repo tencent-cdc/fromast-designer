@@ -1,8 +1,13 @@
 import { unmount, update } from 'nautil/dom'
 import { isString, clone } from 'ts-fns'
 import { Popup } from './libs/popup.js'
+import { React } from 'nautil'
+import { FormastComponents } from '@tencent/formast/react'
 
 import App from './app/app.jsx'
+
+// 导出内部接口，方便开发者进行修改
+export { React, FormastComponents }
 
 export class FormastDesigner {
   constructor(config = {}) {
@@ -34,9 +39,9 @@ export class FormastDesigner {
         this.emit('reset')
         this.refresh()
       },
-      onDownload: () => {
+      onExport: () => {
         const json = clone(this.getJSON())
-        this.emit('download', json)
+        this.emit('export', json)
         const content = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(json, null, 4))
         const a = document.createElement('a')
         a.href = content

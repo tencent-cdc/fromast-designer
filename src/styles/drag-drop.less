@@ -119,10 +119,10 @@
   }
 
   &--vertical {
-    & > @{NAMESPACE}__drop-box + @{NAMESPACE}__drag-box,
-    & > @{NAMESPACE}__drop-box + @{NAMESPACE}__drag-box--outer {
-      margin-top: -10px;
-    }
+    // & > @{NAMESPACE}__drop-box + @{NAMESPACE}__drag-box,
+    // & > @{NAMESPACE}__drop-box + @{NAMESPACE}__drag-box--outer {
+    //   margin-top: -10px;
+    // }
     & > @{NAMESPACE}__drop-box--over + @{NAMESPACE}__drag-box,
     & > @{NAMESPACE}__drop-box--over + @{NAMESPACE}__drag-box--outer {
       margin-top: 0;
@@ -139,15 +139,17 @@
 
     & > @{NAMESPACE}__drop-designer__content {
       flex: 1;
-      margin-left: -10px;
       border-left: rgba(183, 214, 250, 0.3) solid 1px;
 
       &:nth-child(2) {
         border-left: 0;
       }
-    }
-    & > @{NAMESPACE}__drop-designer__dropbox:last-child {
-      margin-left: -10px;
+
+      // 使列紧贴边框
+      // margin-left: -10px;
+      // &:nth-last-child(2) {
+      //   margin-right: -10px;
+      // }
     }
 
     & > @{NAMESPACE}__drop-box {
@@ -212,10 +214,10 @@
       margin: 0;
     }
 
-    & > @{NAMESPACE}__drop-box + @{NAMESPACE}__drag-box,
-    & > @{NAMESPACE}__drop-box + @{NAMESPACE}__drag-box--outer {
-      margin-top: -10px;
-    }
+    // & > @{NAMESPACE}__drop-box + @{NAMESPACE}__drag-box,
+    // & > @{NAMESPACE}__drop-box + @{NAMESPACE}__drag-box--outer {
+    //   margin-top: -10px;
+    // }
     & > @{NAMESPACE}__drop-box--over + @{NAMESPACE}__drag-box,
     & > @{NAMESPACE}__drop-box--over + @{NAMESPACE}__drag-box--outer {
       margin-top: 0;

@@ -4,17 +4,25 @@ import { SchemaDesigner } from './schema-designer.jsx'
 import { StateDesigner } from './state-designer.jsx'
 import { MethodsDesigner } from './methods-designer.jsx'
 import { Modal } from '../components/modal/modal.jsx'
-import { Form, FormItem, Label, Input } from '../components/form/form.jsx'
+import { Form, FormItem, Label, Input, Select } from '../components/form/form.jsx'
+import { isArray } from 'ts-fns'
+import { Popup } from '../libs/popup'
 
 const defaultState = {
   showSubmodelModal: false,
   submodel: {
     field: '',
+    isList: 0,
     json: {},
   },
   activeSubmodelStep: 0,
   editingSubmodel: '',
 }
+
+const isListOptions = [
+  { text: '否', value: 0 },
+  { text: '是', value: 1 },
+]
 
 export class ModelDesigner extends Component {
   static props = {
@@ -33,10 +41,15 @@ export class ModelDesigner extends Component {
   }
 
   EditSubmodel = (field) => {
-    const json = this.props.modelJSON.schema[field]
+    const submodel = this.props.modelJSON.schema[field]
+    const isList = isArray(submodel) ? 1 : 0
     this.setState({
       showSubmodelModal: true,
-      submodel: { field: field.substring(1, field.length - 1), json },
+      submodel: {
+        field: field.substring(1, field.length - 1),
+        json: isList ? submodel[0] : submodel,
+        isList,
+      },
       editingSubmodel: field,
     })
   }
@@ -45,14 +58,17 @@ export class ModelDesigner extends Component {
     const { activeSubmodelStep, submodel, editingSubmodel } = this.state
     const { onModelJSONChange, modelJSON = {} } = this.props
     if (!activeSubmodelStep) {
+      if (!submodel.field) {
+        return Popup.toast('必须填写字段名')
+      }
       this.update(state => state.activeSubmodelStep ++)
     }
     else {
-      const { field, json } = submodel
+      const { field, json, isList } = submodel
       const fieldKey = `<${field}>`
       const next = produce(modelJSON, model => {
         model.schema = model.schema || {}
-        model.schema[fieldKey] = json
+        model.schema[fieldKey] = isList ? [json] : json
         if (editingSubmodel && editingSubmodel !== fieldKey) {
           delete model.schema[editingSubmodel]
         }
@@ -122,7 +138,7 @@ export class ModelDesigner extends Component {
           onCancel={this.handleCancelSubmodel}
           onClose={this.handleCancelSubmodel}
           className={classnames('model-designer__submodel-modal', 'model-designer__submodel-modal--step-' + activeSubmodelStep)}
-          title={activeSubmodelStep ? submodel.field : ''}
+          title={activeSubmodelStep ? submodel.field : '添加子模型'}
         >
           <Switch of={activeSubmodelStep}>
             <Case is={0}>
@@ -130,6 +146,10 @@ export class ModelDesigner extends Component {
                 <FormItem>
                   <Label>字段名</Label>
                   <Input value={submodel.field} onChange={e => this.update(state => state.submodel.field = e.target.value)} />
+                </FormItem>
+                <FormItem>
+                  <Label>是否列表</Label>
+                  <Select options={isListOptions} value={submodel.isList} onChange={e => this.update(state => state.submodel.isList = e.target.value)} />
                 </FormItem>
               </Form>
             </Case>

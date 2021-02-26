@@ -46,9 +46,9 @@ module.exports = {
       },
     ]
   },
-  target: 'web',
+  target: process.env.EXPOSE_MODULE ? 'node' : 'web',
   optimization: {
-    minimize: !process.env.EXPOSE_MODULE,
+    minimize: true,
     nodeEnv: process.env.NODE_ENV,
     concatenateModules: false,
     sideEffects: true,

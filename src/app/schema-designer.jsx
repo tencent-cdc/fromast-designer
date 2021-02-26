@@ -256,7 +256,7 @@ class MetaForm extends Component {
   }
 
   parseSchemaToEdit(field, meta) {
-    const { validators: _validators, ...attrs } = meta
+    const { validators: _validators = [], ...attrs } = meta
 
     const parse = (attrs) => {
       const info = {}

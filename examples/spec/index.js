@@ -2,15 +2,13 @@ import './styles/formast.less'
 
 import { createFormastDesigner } from '../../src/index.js'
 import { Popup } from '../../src/libs/popup.js'
+import exampleJson from './example.json'
 
-const editor = createFormastDesigner('#form-editor')
+const cacheJson = sessionStorage.getItem('__JSON__')
+const json = cacheJson ? JSON.parse(cacheJson) : exampleJson
+const editor = createFormastDesigner('#form-editor', { json })
 
-const json = sessionStorage.getItem('__JSON__')
-if (json) {
-  const formJSON = JSON.parse(json)
-  editor.setJSON(formJSON)
-  editor.refresh()
-}
+console.log(editor.getJSON())
 
 editor.on('save', (json) => {
   console.log(json)

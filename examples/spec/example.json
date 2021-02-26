@@ -1,0 +1,42 @@
+{
+  "model": {
+    "schema": {
+      "gp_name": {
+          "label": "GP名称",
+          "default": "",
+          "type": "string",
+          "placeholder": "请填写GP名称",
+          "required": true,
+          "validators": [
+              "required('GP名称必须填写')",
+              "maxLen(50, 'GP名称不能超过50个字符')"
+          ]
+      },
+      "description": {
+          "label": "简介",
+          "default": "",
+          "type": "string",
+          "placeholder": "请填写GP简介",
+          "validators": [
+              "maxLen(1000, '简介不能超过1000字')"
+          ]
+      },
+      "website": {
+          "label": "登录网址",
+          "default": "",
+          "type": "string",
+          "placeholder": "请填写GP提供的登录网址",
+          "validators": [
+              "maxLen(50, '网址长度不能超过50个字符')"
+          ]
+      },
+      "icon": {
+          "label": "LOGO",
+          "default": null,
+          "type": "file",
+          "drop(v)": "!v",
+          "state()": "{ icon_url: null }"
+      }
+    }
+  }
+}

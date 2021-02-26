@@ -67,7 +67,7 @@ export class SchemaDesigner extends Component {
           const keys = Object.keys(validator)
           for (let key of keys) {
             if (!validator[key]) {
-              return popup.toast(`第${i + 1}个校验器validator必须填写`)
+              return popup.toast(`第${i + 1}个校验器validator必须填写完整`)
             }
           }
         }
@@ -92,7 +92,7 @@ export class SchemaDesigner extends Component {
         [field]: meta,
       }
 
-      if (!next.validators.length) {
+      if (next.validators && !next.validators.length) {
         delete next.validators
       }
 

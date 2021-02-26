@@ -8,8 +8,8 @@ module.exports = {
     path: path.resolve(__dirname, 'dist'),
     filename: process.env.EXPOSE_MODULE ? 'index.js' : 'browser.js',
     library: {
-      type: 'umd',
-      name: 'formast-designer',
+      type: process.env.EXPOSE_MODULE ? 'commonjs2' : 'umd',
+      name: process.env.EXPOSE_MODULE ? undefined : 'formast-designer',
     },
     globalObject: 'window',
   },

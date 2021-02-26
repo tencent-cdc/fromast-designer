@@ -50,6 +50,8 @@ module.exports = {
   optimization: {
     minimize: !process.env.EXPOSE_MODULE,
     nodeEnv: process.env.NODE_ENV,
+    concatenateModules: false,
+    sideEffects: true,
   },
   externals: process.env.EXPOSE_MODULE ? [nodeExternals()] : undefined,
 }

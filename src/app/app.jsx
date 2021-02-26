@@ -1,4 +1,4 @@
-import { React, Component, Section } from 'nautil'
+import { React, Component, Section, createRef } from 'nautil'
 import { Button } from '../components/button/button.jsx'
 import { classnames, globalModelScope } from '../utils'
 import { ModelDesigner } from './model-designer.jsx'

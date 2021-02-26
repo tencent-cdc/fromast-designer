@@ -13,8 +13,8 @@ export class FormastDesigner {
   constructor(config = {}) {
     this.emitters = []
     this.config = config
+    this.json = config.json
     this.el = null
-    this.json = null
   }
 
   mount(el) {

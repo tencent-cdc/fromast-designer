@@ -165,42 +165,45 @@ class MetaForm extends Component {
   }
 
   state = {
-    field: '',
-    label: {
-      type: VALUE_TYPES.STR,
-      params: '',
-      value: '',
+    form: {
+      field: '',
+      label: {
+        type: VALUE_TYPES.STR,
+        params: '',
+        value: '',
+      },
+      default: {
+        type: VALUE_TYPES.EXP,
+        params: '',
+        value: '',
+      },
+      type: {
+        type: VALUE_TYPES.STR,
+        params: '',
+        value: '',
+      },
+      required: {
+        type: VALUE_TYPES.EXP,
+        params: '',
+        value: '',
+      },
+      hidden: {
+        type: VALUE_TYPES.EXP,
+        params: '',
+        value: '',
+      },
+      disabled: {
+        type: VALUE_TYPES.EXP,
+        params: '',
+        value: '',
+      },
+      validators: [],
     },
-    default: {
-      type: VALUE_TYPES.EXP,
-      params: '',
-      value: '',
-    },
-    type: {
-      type: VALUE_TYPES.STR,
-      params: '',
-      value: '',
-    },
-    required: {
-      type: VALUE_TYPES.EXP,
-      params: '',
-      value: '',
-    },
-    hidden: {
-      type: VALUE_TYPES.EXP,
-      params: '',
-      value: '',
-    },
-    disabled: {
-      type: VALUE_TYPES.EXP,
-      params: '',
-      value: '',
-    },
-    validators: [],
   }
 
-  parseMetaToJSON(state) {
-    const { field, ...data } = state
+  // 将填写的内容生成最后要保存的JSON
+  parseMetaToJSON(form) {
+    const { field, ...data } = form
     const parse = ({ type, params, value }, key) => {
       if (type === VALUE_TYPES.STR) {
         return ['', value]
@@ -217,10 +220,10 @@ class MetaForm extends Component {
         return [`(${params})`, value]
       }
     }
-    const meta = {}
+    const json = {}
     each(data, (v, key) => {
       if (key === 'validators') {
-        meta.validators = v.map((item, i) => {
+        json.validators = v.map((item, i) => {
           const { message, validate, determine } = item
 
           // 非函数形式
@@ -249,12 +252,13 @@ class MetaForm extends Component {
       }
       else {
         const [params, exp] = parse(v, key)
-        meta[key + params] = exp
+        json[key + params] = exp
       }
     })
-    return [field, meta]
+    return [field, json]
   }
 
+  // 从JSON还原出用于编辑的form对象
   parseSchemaToEdit(field, meta) {
     const { validators: _validators = [], ...attrs } = meta
 
@@ -302,15 +306,15 @@ class MetaForm extends Component {
     const { data } = this.props
     if (data) {
       const [field, meta] = data
-      const next = this.parseSchemaToEdit(field, meta)
-      this.setState(next)
+      const form = this.parseSchemaToEdit(field, meta)
+      this.setState({ form })
     }
   }
 
   handleSubmit = () => {
-    const state = this.state
+    const { form } = this.state
     try {
-      const json = this.parseMetaToJSON(state)
+      const json = this.parseMetaToJSON(form)
       this.props.onSubmit(json)
     }
     catch (e) {
@@ -381,7 +385,7 @@ class MetaForm extends Component {
       this.setState(state)
     }
 
-    const { field, default: defaultValue, label, type, required, disabled, hidden, validators = [], ...customs } = this.state
+    const { field, default: defaultValue, label, type, required, disabled, hidden, validators = [], ...customs } = this.state.form
     const customKeys = Object.keys(customs)
 
     return (

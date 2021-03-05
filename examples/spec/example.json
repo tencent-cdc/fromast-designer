@@ -57,11 +57,13 @@
             "render($gp_name)!": [
                 "FormItem",
                 {},
-                ["Input", {
-                    "label": "{ $gp_name.label }",
-                    "value": "{ $gp_name.value }",
-                    "onChange(e)": "{ $gp_name.value = e.target.value }"
-                }]
+                ["FormCell", {},
+                    ["Input", {
+                        "label": "{ $gp_name.label }",
+                        "value": "{ $gp_name.value }",
+                        "onChange(e)": "{ $gp_name.value = e.target.value }"
+                    }]
+                ]
             ]
         }
     }

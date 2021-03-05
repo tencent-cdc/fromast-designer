@@ -184,7 +184,7 @@ class BuiltinItem extends Component {
     return (
       <div className={classnames('builtin-item')}>
         <span>{`<${name} />`}</span>
-        <AutoModal trigger={(show) => <button className={classnames('builtin-item__button')} onClick={show}>详情</button>} title="组件配置信息" disableCancel>
+        <AutoModal trigger={(show) => <button type="button" className={classnames('builtin-item__button')} onClick={show}>详情</button>} title="组件配置信息" disableCancel>
           <pre className={classnames('builtin-item__preview')}>{JSON.stringify(data, null, 4)}</pre>
         </AutoModal>
       </div>

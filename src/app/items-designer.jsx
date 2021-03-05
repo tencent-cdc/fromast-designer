@@ -132,6 +132,17 @@ export class ItemsDesigner extends Component {
     store.dispatch(selectedMonitor)
   }
 
+  onMounted() {
+    // 进入的时候，如果有组件，那么默认选中第一个组件
+    const { json = {} } = this.attrs
+    const keys = Object.keys(json)
+    if (!keys.length) {
+      return
+    }
+    const one = keys[0]
+    this.handleSelectComponent(one)
+  }
+
   parseExp = (exp, locals) => {
     const { componentSetting } = this.state
     const { fields, alias } = componentSetting

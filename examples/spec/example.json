@@ -10,7 +10,11 @@
                 "disabled": false,
                 "validators": [
                     "required('GP名称必须填写')",
-                    "maxLen(50, 'GP名称不能超过50个字符')"
+                    {
+                        "determine": true,
+                        "validate(v)": "{ v <= 50 }",
+                        "message": "GP名称不能超过50个字符"
+                    }
                 ]
             },
             "description": {

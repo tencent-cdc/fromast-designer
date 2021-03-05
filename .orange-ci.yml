@@ -1,25 +1,25 @@
-$:
-  tag_push:
-    - docker:
-        image: node:12
-      runner:
-        network: devnet
-      stages:
-        - name: 安装依赖
-          script:
-            - npm install
-        - name: 构建
-          script:
-            - npm run build:bundle
-        - name: 发布 OA 内网 CDN
-          type: cdn:go
-          options:
-            dist: dist/
-            latest: true
-          envExport:
-            cdnUrl: CND_URL
-        - name: 发布完成
-          script: echo $CND_URL
+# $:
+#   tag_push:
+#     - docker:
+#         image: node:12
+#       runner:
+#         network: devnet
+#       stages:
+#         - name: 安装依赖
+#           script:
+#             - npm install
+#         - name: 构建
+#           script:
+#             - npm run build:bundle
+#         - name: 发布 OA 内网 CDN
+#           type: cdn:go
+#           options:
+#             dist: dist/
+#             latest: true
+#           envExport:
+#             cdnUrl: CND_URL
+#         - name: 发布完成
+#           script: echo $CND_URL
 
 master:
   push:

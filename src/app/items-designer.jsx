@@ -129,7 +129,7 @@ export class ItemsDesigner extends Component {
   }
   handleSelect = (selectedMonitor) => {
     this.setState({ activeSetting: 1 })
-    store.dispatch(() => selectedMonitor)
+    store.dispatch(selectedMonitor)
   }
 
   parseExp = (exp, locals) => {

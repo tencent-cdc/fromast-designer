@@ -176,16 +176,16 @@ export class Monitor {
       return str[0] === '{' && str[str.length - 1] === '}'
     }
     const getExp = (str) => {
-      return str.substring(1, str.length - 1)
+      return str.substring(1, str.length - 1).trim()
     }
 
     each(props, (value, key) => {
-      const sourceProp = source.props.find(item => item.key === key)
+      const [name, params] = parseKey(key)
+      const sourceProp = source.props.find(item => item.key === name)
       if (!sourceProp) {
         return
       }
 
-      const [name, params] = parseKey(key)
       if (params) {
         this.props[name] = {
           type: VALUE_TYPES.FN,

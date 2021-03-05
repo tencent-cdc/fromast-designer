@@ -8,8 +8,6 @@ const cacheJson = sessionStorage.getItem('__JSON__')
 const json = cacheJson ? JSON.parse(cacheJson) : exampleJson
 const editor = createFormastDesigner('#form-editor', { json })
 
-console.log(editor.getJSON())
-
 editor.on('save', (json) => {
   console.log(json)
   const formJSON = JSON.stringify(json)

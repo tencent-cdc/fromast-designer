@@ -1,5 +1,5 @@
 import { React, Component, useState, useRef, Section, useCallback, produce, useEffect, If, Validator } from 'nautil'
-import { isEmpty, each } from 'ts-fns'
+import { isEmpty, each, isUndefined, isString } from 'ts-fns'
 import { Button } from '../components/button/button.jsx'
 import { Modal, AutoModal } from '../components/modal/modal.jsx'
 import { Form, FormItem, Label, Input, FormLoop } from '../components/form/form.jsx'
@@ -131,7 +131,7 @@ export class SchemaDesigner extends Component {
         </Section>
 
         <MetaForm
-          width="900px"
+          width="80vw"
           title="新建字段"
           isShow={this.state.isShow}
           onSubmit={handleSubmitMeta}
@@ -164,41 +164,38 @@ class MetaForm extends Component {
     )
   }
 
-  state = {
-    form: {
-      field: '',
-      label: {
-        type: VALUE_TYPES.STR,
-        params: '',
-        value: '',
-      },
-      default: {
-        type: VALUE_TYPES.EXP,
-        params: '',
-        value: '',
-      },
-      type: {
-        type: VALUE_TYPES.STR,
-        params: '',
-        value: '',
-      },
-      required: {
-        type: VALUE_TYPES.EXP,
-        params: '',
-        value: '',
-      },
-      hidden: {
-        type: VALUE_TYPES.EXP,
-        params: '',
-        value: '',
-      },
-      disabled: {
-        type: VALUE_TYPES.EXP,
-        params: '',
-        value: '',
-      },
-      validators: [],
+  static defaultFormData = {
+    field: '',
+    label: {
+      type: VALUE_TYPES.STR,
+      params: '',
+      value: '',
     },
+    default: {
+      type: VALUE_TYPES.EXP,
+      params: '',
+      value: '',
+    },
+    type: {
+      type: VALUE_TYPES.STR,
+      params: '',
+      value: '',
+    },
+    required: {
+      type: VALUE_TYPES.EXP,
+      params: '',
+      value: '',
+    },
+    disabled: {
+      type: VALUE_TYPES.EXP,
+      params: '',
+      value: '',
+    },
+    validators: [],
+  }
+
+  state = {
+    form: MetaForm.defaultFormData,
   }
 
   // 将填写的内容生成最后要保存的JSON
@@ -270,7 +267,7 @@ class MetaForm extends Component {
           info[key] = {
             type: 2,
             params: params.join(','),
-            value,
+            value: isUndefined(value) ? '' : value,
           }
         }
         else if (typeof value !== 'string') {
@@ -284,7 +281,7 @@ class MetaForm extends Component {
           info[key] = {
             type: 0,
             params: '',
-            value: value,
+            value: isUndefined(value) ? '' : value,
           }
         }
       })
@@ -292,6 +289,25 @@ class MetaForm extends Component {
     }
 
     const validators = _validators.map((item) => {
+      if (isString(item)) {
+        return {
+          determine: {
+            type: VALUE_TYPES.EXP,
+            params: '',
+            value: '',
+          },
+          validate: {
+            type: VALUE_TYPES.EXP,
+            params: '',
+            value: item,
+          },
+          message: {
+            type: VALUE_TYPES.STR,
+            params: 'value',
+            value: '',
+          },
+        }
+      }
       return parse(item)
     })
 
@@ -306,7 +322,7 @@ class MetaForm extends Component {
     const { data } = this.props
     if (data) {
       const [field, meta] = data
-      const form = this.parseSchemaToEdit(field, meta)
+      const form = { ...MetaForm.defaultFormData, ...this.parseSchemaToEdit(field, meta) }
       this.setState({ form })
     }
   }
@@ -340,7 +356,7 @@ class MetaForm extends Component {
 
     const handleAddValidator = (index) => {
       handleChangeState(state => {
-        state.validators.splice(isEmpty(index) ? 0 : index + 1, 0, {
+        state.form.validators.splice(isEmpty(index) ? 0 : index + 1, 0, {
           determine: {
             type: VALUE_TYPES.EXP,
             params: '',
@@ -362,7 +378,7 @@ class MetaForm extends Component {
 
     const handleDelValidator = (index) => {
       handleChangeState(state => {
-        state.validators.splice(index, 1)
+        state.form.validators.splice(index, 1)
       })
     }
 
@@ -385,7 +401,11 @@ class MetaForm extends Component {
       this.setState(state)
     }
 
-    const { field, default: defaultValue, label, type, required, disabled, hidden, validators = [], ...customs } = this.state.form
+    const handleChangeForm = (kv) => {
+      handleChangeState(state => Object.assign(state.form, kv))
+    }
+
+    const { field, default: defaultValue, label, type, required, disabled, validators = [], ...customs } = this.state.form
     const customKeys = Object.keys(customs)
 
     return (
@@ -393,25 +413,22 @@ class MetaForm extends Component {
         <Form aside={aside}>
           <FormItem>
             <Label>字段 Key</Label>
-            <Input value={field} onChange={(e) => handleChangeState(state => state.field = e.target.value)} />
+            <Input value={field} onChange={(e) => handleChangeState(state => state.form.field = e.target.value)} />
           </FormItem>
           <FormItem stylesheet={[classnames('form-item--rich')]}>
-            <RichPropEditor label="显示名(label)" types={[VALUE_TYPES.STR, VALUE_TYPES.EXP]} data={label} onChange={data => this.setState({ label: data })} />
+            <RichPropEditor label="显示名(label)" types={[VALUE_TYPES.STR, VALUE_TYPES.EXP]} data={label} onChange={data => handleChangeForm({ label: data })} />
           </FormItem>
           <FormItem stylesheet={[classnames('form-item--rich')]}>
-            <RichPropEditor label="类型(type)" types={[VALUE_TYPES.STR, VALUE_TYPES.EXP]} data={type} onChange={data => this.setState({ type: data })} />
+            <RichPropEditor label="类型(type)" types={[VALUE_TYPES.STR, VALUE_TYPES.EXP]} data={type} onChange={data => handleChangeForm({ type: data })} />
           </FormItem>
           <FormItem stylesheet={[classnames('form-item--rich')]}>
-            <RichPropEditor label="默认值(default)" types={[VALUE_TYPES.STR, VALUE_TYPES.EXP]} data={defaultValue} onChange={data => this.setState({ default: data })} />
+            <RichPropEditor label="默认值(default)" types={[VALUE_TYPES.STR, VALUE_TYPES.EXP]} data={defaultValue} onChange={data => handleChangeForm({ default: data })} />
           </FormItem>
           <FormItem stylesheet={[classnames('form-item--rich')]}>
-            <RichPropEditor label="是否必填(required)" types={[VALUE_TYPES.EXP, VALUE_TYPES.FN]} data={required} onChange={data => this.setState({ required: data })} />
+            <RichPropEditor label="是否必填(required)" types={[VALUE_TYPES.EXP, VALUE_TYPES.FN]} data={required} onChange={data => handleChangeForm({ required: data })} />
           </FormItem>
           <FormItem stylesheet={[classnames('form-item--rich')]}>
-            <RichPropEditor label="是否隐藏(hidden)" types={[VALUE_TYPES.EXP, VALUE_TYPES.FN]} data={hidden} onChange={data => this.setState({ hidden: data })} />
-          </FormItem>
-          <FormItem stylesheet={[classnames('form-item--rich')]}>
-            <RichPropEditor label="是否禁用(disabled)" types={[VALUE_TYPES.EXP, VALUE_TYPES.FN]} data={disabled} onChange={data => this.setState({ disabled: data })} />
+            <RichPropEditor label="是否禁用(disabled)" types={[VALUE_TYPES.EXP, VALUE_TYPES.FN]} data={disabled} onChange={data => handleChangeForm({ disabled: data })} />
           </FormItem>
           <FormItem>
             <Label>校验器(validators)</Label>
@@ -419,7 +436,7 @@ class MetaForm extends Component {
               items={validators}
               onAdd={handleAddValidator}
               onDel={handleDelValidator}
-              onChange={validators => this.setState({ validators })}
+              onChange={validators => handleChangeForm({ validators })}
               render={(i, validator, onChange) => {
                 return (
                   <>
@@ -446,11 +463,7 @@ class MetaForm extends Component {
               const { key: _, ...data } = custom
               return (
                 <FormItem key={key} stylesheet={[classnames('form-item--rich', 'schema-designer-custom-field')]}>
-                  <RichPropEditor label={key} data={data} onChange={data => {
-                    handleChangeState(state => {
-                      state[key] = { key, ...data }
-                    })
-                  }} />
+                  <RichPropEditor label={key} data={data} onChange={data => handleChangeForm({ [key]: data })} />
                   <Close onHit={() => handleRemoveCustomField(key)} />
                 </FormItem>
               )

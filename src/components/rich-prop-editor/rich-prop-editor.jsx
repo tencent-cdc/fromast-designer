@@ -11,6 +11,7 @@ const attrTypes = [
 export function RichPropEditor(props) {
   const { label, data, onChange, types } = props
   const items = attrTypes.filter(item => types ? types.includes(item.value) : true)
+
   return (
     <>
       <Label>{label}</Label>

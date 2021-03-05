@@ -38,10 +38,10 @@ export class Designer extends Component {
           attrs[key] = value
         }
         else if (type === 1) {
-          attrs[key] = `{${value}}`
+          attrs[key] = `{ ${value} }`
         }
         else if (type === 2) {
-          attrs[`${key}(${params})`] = `{${value}}`
+          attrs[`${key}(${params})`] = `{ ${value} }`
         }
       })
       return [id, attrs, ...children.map(extract)]

@@ -94,19 +94,37 @@ export class Monitor {
   }
   DropBox = (props) => {
     const { config, onSelect, onRemove, onChange, expParser } = this.getPassedProps()
+    const { index } = props
+    const useGroup = typeof index === 'number'
+
+    // 检查是否传入了必要的处理方法
+    const { id, convertGroupsToJSON, recoverGroupsFromJSON } = this.source
+    if (useGroup) {
+      if (!recoverGroupsFromJSON) {
+        throw new Error(`${id} 必须传入 recoverGroupsFromJSON`)
+      }
+      if (!convertGroupsToJSON) {
+        throw new Error(`${id} 必须传入 convertGroupsToJSON`)
+      }
+    }
+
     return (
       <DndProvider backend={HTML5Backend}>
         <DropDesigner
-          {...props}
           config={config}
           source={this.source}
           type={this.id}
           expParser={expParser}
-          elements={this.elements}
+          elements={useGroup ? this.elements[index] : this.elements}
           onSelect={onSelect}
           onRemove={onRemove}
           onChange={(children) => {
-            this.children = children
+            if (useGroup) {
+              this.children[index] = children
+            }
+            else {
+              this.children = children
+            }
             onChange()
           }}
         />
@@ -249,24 +267,22 @@ export class DropDesigner extends Component {
       items.forEach((item) => sources.push(item))
     })
 
-    const createAndPutItems = (elements) => {
-      return elements.map((element) => {
-        const [id, props, ...children] = element
-        const source = sources.find(item => item.id === id)
+    elements.forEach((element) => {
+      const [id, props, ...children] = element
+      const source = sources.find(item => item.id === id)
 
-        // 清除不存在的素材
-        // TODO 版本升级时，是否需要做兼容性考虑
-        if (!source) {
-          return
-        }
+      // 清除不存在的素材
+      // TODO 版本升级时，是否需要做兼容性考虑
+      if (!source) {
+        return
+      }
 
-        const item = this.createAndPutItem(this.items.length - 1, source)
-        item.setExpProps(props)
-        item.elements = children
-        return item
-      }).filter(item => !!item)
-    }
-    createAndPutItems(elements)
+      const item = this.createAndPutItem(this.items.length - 1, source)
+      item.setExpProps(props)
+
+      const { recoverGroupsFromJSON } = source
+      item.elements = recoverGroupsFromJSON ? recoverGroupsFromJSON(children) : children
+    })
     this.forceUpdate()
 
     setTimeout(() => {

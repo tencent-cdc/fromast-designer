@@ -30,7 +30,7 @@ export class Designer extends Component {
 
     const extract = (monitor) => {
       const { source, props, children } = monitor
-      const { id } = source
+      const { id, convertGroupsToJSON } = source
       const attrs = {}
       each(props, (data, key) => {
         const { type, params, value } = data
@@ -44,6 +44,17 @@ export class Designer extends Component {
           attrs[`${key}(${params})`] = `{ ${value} }`
         }
       })
+
+      if (children.length && isArray(children[0]) && isArray(children[0][0])) {
+        if (!convertGroupsToJSON) {
+          throw new Error(`${id} 必须传入 convertGroupsToJSON`)
+        }
+
+        const items = groups.map(items => items.map(extract))
+        const children = convertGroupsToJSON(items)
+        return [id, attrs, ...children]
+      }
+
       return [id, attrs, ...children.map(extract)]
     }
     const jsx = monitors.length ? extract(monitors[0]) : null // 只需要顶层第一个

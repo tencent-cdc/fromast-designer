@@ -105,6 +105,9 @@ designer.on('save', (json) => {
             needs: ifexist([String]), // 组件如果要被以子组件形式挂载，那么只允许这些组件挂载自己
             tag: ifexist(String), // allows/needs 根据 id/tag 来进行判断，但是每个 item 的 id 是唯一的，而不同 item tag 可以相同，这样可以批量处理一些是否允许挂载问题
 
+            recoverGroupsFromJSON(children), // 将来自上层传递的JSON格式化为符合mount中DropBox需要的内容
+            convertGroupsToJSON(groups), // 将来自下层DropBox提交格式化为最终保存的JSON
+
             // 当前这个 item 在渲染到设计器中时，如何进行渲染？
             // 你需要自己写挂载程序来决定渲染效果
             mount(el, monitor) {

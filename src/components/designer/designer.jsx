@@ -27,41 +27,9 @@ export class Designer extends Component {
   }
   handleChange = (monitors) => {
     const { onChange } = this.props
-
-    const extract = (monitor) => {
-      const { source, props, children } = monitor
-      const { id, fromRuntimeToJSON } = source
-      const attrs = {}
-      each(props, (data, key) => {
-        const { type, params, value } = data
-        if (type === 0) {
-          attrs[key] = value
-        }
-        else if (type === 1) {
-          attrs[key] = `{ ${value} }`
-        }
-        else if (type === 2) {
-          attrs[`${key}(${params})`] = `{ ${value} }`
-        }
-      })
-
-      if (children.length && isArray(children[0]) && isArray(children[0][0])) {
-        if (!fromRuntimeToJSON) {
-          throw new Error(`${id} 必须传入 fromRuntimeToJSON`)
-        }
-      }
-
-      if (fromRuntimeToJSON) {
-        const items = children.map(items => items.map(extract))
-        const [_attrs, _children] = fromRuntimeToJSON.call(monitor, attrs, items)
-        return [id, _attrs, ..._children]
-      }
-
-      return [id, attrs, ...children.map(extract)]
-    }
-
-    const jsx = monitors.length ? extract(monitors[0]) : null // 只需要顶层第一个
-    onChange(jsx)
+    // 只需要顶层第一个
+    const top = monitors.length ? monitors[0] : null
+    onChange(top)
   }
 
   render() {

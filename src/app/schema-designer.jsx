@@ -332,6 +332,7 @@ class MetaForm extends Component {
     try {
       const json = this.parseMetaToJSON(form)
       this.props.onSubmit(json)
+      this.setState({ form: MetaForm.defaultFormData })
     }
     catch (e) {
       Popup.toast(e)

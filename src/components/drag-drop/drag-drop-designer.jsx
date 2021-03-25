@@ -6,7 +6,7 @@ import { HTML5Backend } from 'react-dnd-html5-backend'
 import { createRandomString, each } from 'ts-fns'
 import { Confirm } from '../confirm/confirm.jsx'
 import { VALUE_TYPES, COMPONENT_TYPES } from '../../config/constants.js'
-import { isFunction, throttle } from 'ts-fns'
+import { isFunction, throttle, define, find, isArray } from 'ts-fns'
 import * as icons from '../icon'
 import { BsTrash, BsArrowsMove } from '../icon'
 import { useStore, store } from './store.js'
@@ -77,6 +77,13 @@ export class DragDesigner extends Component {
   }
 }
 
+const isExp = (str) => {
+  return str[0] === '{' && str[str.length - 1] === '}'
+}
+const getExp = (str) => {
+  return str.substring(1, str.length - 1).trim()
+}
+
 export class Monitor {
   constructor({ el, source, getPassedProps, ...options }) {
     this.id = createRandomString(8)
@@ -87,6 +94,8 @@ export class Monitor {
     this.options = options
     this.children = []
     this.elements = []
+
+    this.bindField = ''
 
     if (source.props && source.props.length) {
       this.setInitProps(source.props)
@@ -135,6 +144,8 @@ export class Monitor {
     const res = {}
     const { expParser } = this.getPassedProps()
 
+    const parse = expParser(this)
+
     const props = this.props
     const keys = Object.keys(props)
     // 当表达式输入没有输入完时，可能会保持，这时通过一个try..catch保证正常渲染不报错
@@ -159,7 +170,7 @@ export class Monitor {
         res[key] = value
       }
       else if (type === 1) {
-        res[key] = tryGet(value, expParser, defender)
+        res[key] = tryGet(value, parse, defender)
       }
       else if (type === 2) {
         const items = params.split(',').filter(item => !!item)
@@ -169,7 +180,7 @@ export class Monitor {
             if (items[i])
             locals[items[i]] = arg
           })
-          return tryGet(value, (value) => expParser(value, locals), defender)
+          return tryGet(value, (value) => parse(value, locals), defender)
         }
       }
     })
@@ -190,12 +201,6 @@ export class Monitor {
   }
   setExpProps(props) {
     const source = this.source
-    const isExp = (str) => {
-      return str[0] === '{' && str[str.length - 1] === '}'
-    }
-    const getExp = (str) => {
-      return str.substring(1, str.length - 1).trim()
-    }
 
     each(props, (value, key) => {
       const [name, params] = parseKey(key)
@@ -233,6 +238,54 @@ export class Monitor {
       }
     })
   }
+  getHyperJSON() {
+    const fields = []
+    const props = []
+
+    const extract = (monitor) => {
+      const { source, props, children, bindField } = monitor
+
+      if (bindField && !fields.includes(bindField)) {
+        fields.push(bindField)
+      }
+
+      const { id, fromRuntimeToJSON } = source
+      const attrs = {}
+      each(props, (data, key) => {
+        const { type, params, value } = data
+        if (type === 0) {
+          attrs[key] = value
+        }
+        else if (type === 1) {
+          attrs[key] = `{ ${value} }`
+        }
+        else if (type === 2) {
+          attrs[`${key}(${params})`] = `{ ${value} }`
+        }
+      })
+
+      if (children.length && isArray(children[0]) && isArray(children[0][0])) {
+        if (!fromRuntimeToJSON) {
+          throw new Error(`${id} 必须传入 fromRuntimeToJSON`)
+        }
+      }
+
+      if (fromRuntimeToJSON) {
+        const items = children.map(items => items.map(extract))
+        const [_attrs, _children] = fromRuntimeToJSON.call(monitor, attrs, items)
+        return [id, _attrs, ..._children]
+      }
+
+      return [id, attrs, ...children.map(extract)]
+    }
+    const jsx = extract(this)
+
+    return {
+      fields,
+      props, // TODO
+      'render!': jsx,
+    }
+  }
 }
 
 export class DropDesigner extends Component {
@@ -246,6 +299,7 @@ export class DropDesigner extends Component {
     onSelect: true,
     onRemove: true,
     onChange: true,
+    onUpdate: false,
   }
   static propsCheckAsync = true
 
@@ -284,6 +338,16 @@ export class DropDesigner extends Component {
 
       item.setExpProps(props)
       item.elements = children
+
+      let bindField = ''
+      let value = find(props, (_, key) => key === 'value')
+      if (value && isExp(value)) {
+        value = getExp(value)
+      }
+      if (/^[a-z0-9A-Z]+\.value$/.test(value)) {
+        bindField = value.replace('.value', '')
+      }
+      item.bindField = bindField
     })
     this.forceUpdate()
 
@@ -295,7 +359,7 @@ export class DropDesigner extends Component {
         }
         this.mountItem(item)
       })
-    }, 32)
+    }, 16)
   }
 
   createAndPutItem(i, source) {
@@ -342,7 +406,7 @@ export class DropDesigner extends Component {
       this.handleChange()
       this.mountItem(item)
       this.handleSelect({}, item)
-    }, 32)
+    }, 16)
   }
   canDrop = (current) => {
     const { source, max, type } = this.props
@@ -369,11 +433,6 @@ export class DropDesigner extends Component {
   mountItem(item) {
     item.source.mount(item.el.current, item)
   }
-
-  // 更新内容没有必要那么即时
-  updateItem = throttle((item) => {
-    item.source.update(item.el.current, item)
-  }, 100)
 
   handleChange = () => {
     const { onChange } = this.props
@@ -412,7 +471,7 @@ export class DropDesigner extends Component {
       if (!item) {
         return
       }
-      this.updateItem(item)
+      item.source.update(item.el.current, item)
     })
   }
 

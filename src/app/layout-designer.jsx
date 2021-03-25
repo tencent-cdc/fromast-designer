@@ -1,50 +1,76 @@
-import { React, Component, Section, Text, If, Switch, Case } from 'nautil'
+import { React, Component, Section, Text, If, Else, Switch, Case, ifexist } from 'nautil'
 import { render, unmount } from 'nautil/dom'
 import { classnames, getConfig } from '../utils'
-import { Form, FormItem, Label, Input } from '../components/form/form.jsx'
+import { Form, FormItem, Label, Input, Textarea, Select } from '../components/form/form.jsx'
 import { RichPropEditor } from '../components/rich-prop-editor/rich-prop-editor.jsx'
-import { Button } from '../components/button/button.jsx'
 import { Popup } from '../libs/popup.js'
-import { find, compute_ } from 'ts-fns'
+import { find, compute_, debounce, decideby } from 'ts-fns'
 import { Designer } from '../components/designer/designer.jsx'
 import ScopeX from 'scopex'
-import DefaultLayoutConfig from '../config/layout.jsx'
 import { AutoModal } from '../components/modal/modal.jsx'
+import { Tabs } from '../components/tabs/tabs.jsx'
+import { Prompt } from '../components/prompt/prompt.jsx'
+import { COMPONENT_TYPES } from '../config/constants.js'
+import { globalModelScope } from '../utils'
 
 export class LayoutDesigner extends Component {
+  static props = {
+    config: Object,
+    json: Object,
+    onLayoutChange: true,
+  }
+
   state = {
-    layoutSetting: {
-      props: '',
-      alias: '',
-    },
+    bindField: '',
+    aliasFields: [],
+    aliasProps: [],
     selectedMonitor: null,
     // 保存配置时使用
     jsx: null,
     activeSetting: 0,
   }
 
-  handleSaveSettings = () => {
-    const { jsx, layoutSetting } = this.state
-    const { onChange } = this.props
-
-    if (!jsx) {
-      return Popup.toast('请完成组件设计！')
-    }
-
-    const { props, alias } = layoutSetting
-    const renderKey = `render(${alias})!`
-
-    const layout = {
-      props: props.split(',').filter(item => !!item),
-      [renderKey]: jsx,
-    }
-
-    onChange(layout)
-
-    Popup.toast('保存配置成功')
+  data = {
+    settingTabs: [
+      {
+        text: '数据配置',
+        value: 0,
+      },
+      {
+        text: 'UI配置',
+        value: 1,
+      },
+    ]
   }
+
+  handleSaveSettings = debounce(() => {
+    const { jsx, bindField, aliasFields, aliasProps, selectedMonitor } = this.state
+
+    if (!selectedMonitor) {
+      return
+    }
+
+    const { onLayoutChange } = this.props
+    const { type } = selectedMonitor.source
+
+    const layout = decideby(() => {
+      const fields = type === COMPONENT_TYPES.ATOM
+        ? (bindField ? [bindField] : [])
+        : aliasFields
+      const props = aliasProps
+      return {
+        fields,
+        props,
+        'render!': jsx,
+      }
+    })
+
+    onLayoutChange(layout)
+  }, 500)
+
   handleChange = (jsx) => {
     this.setState({ jsx })
+    this.handleSaveSettings()
   }
 
   handleRemove = (item) => {
@@ -53,24 +79,36 @@ export class LayoutDesigner extends Component {
     }
   }
   handleSelect = (selectedMonitor) => {
-    this.setState({ selectedMonitor, activeSetting: 1 })
+    const { bindField } = selectedMonitor
+    this.setState({ selectedMonitor, activeSetting: 0, bindField })
   }
 
   parseExp = (exp, locals) => {
+    const { bindField } = this.state
+
     const scope = {}
+    const model = globalModelScope.get()
+
+    if (bindField) {
+      scope[bindField] = model.$views[bindField]
+    }
+
+    // TODO 其他类型
+
     if (locals) {
       Object.assign(scope, locals)
     }
+
     const scopex = new ScopeX(scope)
     return scopex.parse(exp)
   }
 
-  getItemsConfig = compute_(function(itemsJSON) {
-    if (!itemsJSON) {
+  getComponentsConfig = compute_(function(componentsJSON) {
+    if (!componentsJSON) {
       return {}
     }
 
-    const names = Object.keys(itemsJSON)
+    const names = Object.keys(componentsJSON)
     if (!names.length) {
       return {}
     }
@@ -87,7 +125,7 @@ export class LayoutDesigner extends Component {
               title: name,
               tag: 'builtin-component',
               mount(el) {
-                render(el, <BuiltinItem name={name} data={itemsJSON[name]} />)
+                render(el, <BuiltinItem name={name} data={componentsJSON[name]} />)
               },
               update(el) {
                 item.mount(el)
@@ -104,45 +142,67 @@ export class LayoutDesigner extends Component {
     return config
   })
 
+  handleBindField = (value) => {
+    this.setState({ bindField: value }, () => {
+      const { selectedMonitor } = this.state
+      const { fromMetaToProps } = selectedMonitor.source
+      const schema = this.props.json?.model?.schema || {}
+      const meta = schema[value]
+
+      const props = fromMetaToProps(value, meta, selectedMonitor)
+      if (props) {
+        selectedMonitor.setExpProps(props)
+      }
+      selectedMonitor.bindField = value
+
+      this.handleSaveSettings()
+    })
+  }
+
   render() {
-    const { selectedMonitor } = this.state
-    const { layoutJSON, itemsJSON, config } = this.props
+    const { selectedMonitor, activeSetting, bindField, aliasFields, aliasProps } = this.state
+    const { settingTabs } = this.data
+    const { json = {}, config } = this.props
+    const { model = {}, components = {}, layout = {} } = json
 
-    const itemsConfig = this.getItemsConfig(itemsJSON)
-    const sourceConfig = getConfig(itemsConfig, getConfig(config, DefaultLayoutConfig))
+    const fields = decideby(() => {
+      if (!model.schema) {
+        return []
+      }
+      const keys = Object.keys(model.schema)
+      return keys.map((key) => ({ text: model.schema[key].label, value: key }))
+    })
 
-    const jsx = find(layoutJSON, (_, key) => /^render\(.*?\)!$/.test(key))
+    const componentsConfig = this.getComponentsConfig(components)
+    const sourceConfig = getConfig(componentsConfig, getConfig(config))
+
+    const jsx = find(layout, (_, key) => /^render!$/.test(key))
     const elements = jsx && [jsx]
 
     return (
       <Section stylesheet={[classnames('content layout-designer')]}>
         <Designer
-          buttons={<Button primary onHit={this.handleSaveSettings}>保存配置</Button>}
           settings={
-            <Section stylesheet={[classnames('layout-designer__settings')]}>
-              <Section stylesheet={[classnames('layout-designer__settings-menus')]}>
-                <Section stylesheet={[classnames('layout-designer__settings-menu', this.state.activeSetting === 0 ? 'layout-designer__settings-menu--active' : '')]} onHit={() => this.setState({ activeSetting: 0 })}><Text>布局配置</Text></Section>
-                <If is={!!selectedMonitor}><Section stylesheet={[classnames('layout-designer__settings-menu', this.state.activeSetting === 1 ? 'layout-designer__settings-menu--active' : '')]} onHit={() => this.setState({ activeSetting: 1 })}><Text>素材配置</Text></Section></If>
-              </Section>
-              <Switch of={this.state.activeSetting}>
-                <Case is={0}>
-                  <Section stylesheet={[classnames('layout-designer__setting')]}>
-                    <Form>
-                      <FormItem>
-                        <Label>Props</Label>
-                        <Input value={this.state.layoutSetting.props} onChange={(e) => this.update(state => { state.layoutSetting.props = e.target.value })} placeholder="Props上的属性，例如：a,b,c" />
-                      </FormItem>
-                      <FormItem>
-                        <Label>别名</Label>
-                        <Input value={this.state.layoutSetting.alias} onChange={(e) => this.update(state => { state.layoutSetting.alias = e.target.value })} placeholder="将Props映射到作用域中，例如将a,b,c映射为$a,$b,$c" />
-                      </FormItem>
-                    </Form>
-                  </Section>
-                </Case>
-                <Case is={1}>
-                  <Section stylesheet={[classnames('layout-designer__setting')]}>
-                    <If is={!!selectedMonitor} render={() =>
-                      <Form>
+            <If is={!!selectedMonitor} render={() =>
+              <Section stylesheet={[classnames('layout-designer__settings')]}>
+                <Section stylesheet={[classnames('layout-designer__settings-menus')]}>
+                  <Tabs items={settingTabs} active={activeSetting} onSelect={(item) => this.setState({ activeSetting: item.value })} />
+                </Section>
+                <Section stylesheet={[classnames('layout-designer__settings-content')]}>
+                  <Switch of={activeSetting}>
+                    <Case is={0} render={() =>
+                      <Form aside>
+                        <If is={selectedMonitor.source.type === COMPONENT_TYPES.ATOM} render={() =>
+                          <FormItem>
+                            <Label>绑定字段</Label>
+                            <Select options={fields} value={bindField} onChange={(e) => this.handleBindField(e.target.value)}></Select>
+                          </FormItem>
+                        }>
+                        </If>
+                      </Form>
+                    } />
+                    <Case is={1} render={() =>
+                      <Form aside>
                         {selectedMonitor.source.props.map((item) => {
                           return (
                             <FormItem key={item.key} stylesheet={[classnames('form-item--rich')]}>
@@ -160,10 +220,10 @@ export class LayoutDesigner extends Component {
                         })}
                       </Form>
                     } />
-                  </Section>
-                </Case>
-              </Switch>
-            </Section>
+                  </Switch>
+                </Section>
+              </Section>
+            } />
           }
           elements={elements}
           config={sourceConfig}

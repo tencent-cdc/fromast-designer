@@ -1,14 +1,14 @@
-import { React, Component, Section, Text, createRef, Each, nonable, ifexist, If, Enum, List, Dict } from 'nautil'
+import { React, Component, Section, Text, createRef, Each, nonable, ifexist, List, Dict, Enum } from 'nautil'
 import { DropBox, DragBox } from './drag-drop.jsx'
 import { classnames, parseKey } from '../../utils'
 import { DndProvider } from 'react-dnd'
 import { HTML5Backend } from 'react-dnd-html5-backend'
 import { createRandomString, each } from 'ts-fns'
 import { Confirm } from '../confirm/confirm.jsx'
-import { VALUE_TYPES } from '../../config/constants.js'
+import { VALUE_TYPES, COMPONENT_TYPES } from '../../config/constants.js'
 import { isFunction, throttle } from 'ts-fns'
 import * as icons from '../icon'
-import { BsTrash, BsGear, BsArrowsMove } from '../icon'
+import { BsTrash, BsArrowsMove } from '../icon'
 import { useStore, store } from './store.js'
 
 export const ConfigType = new Dict({
@@ -19,6 +19,7 @@ export const ConfigType = new Dict({
       items: [
         {
           id: String,
+          type: new Enum(Object.values(COMPONENT_TYPES)),
           title: String,
           icon: ifexist(String),
           direction: ifexist('h'),
@@ -64,7 +65,6 @@ export class DragDesigner extends Component {
                     <Section stylesheet={[classnames('drag-designer__source-item')]}>
                       {Icon ? <Icon /> : null}
                       <Text stylesheet={[classnames('drag-designer__source-item__text')]}>{title}</Text>
-                      {title !== id ? <Text stylesheet={[classnames('drag-designer__source-item__id')]}>{id}</Text> : null}
                     </Section>
                   </DragBox>
                 )
@@ -98,13 +98,13 @@ export class Monitor {
     const useGroup = typeof index === 'number'
 
     // 检查是否传入了必要的处理方法
-    const { id, convertGroupsToJSON, recoverGroupsFromJSON } = this.source
+    const { id, fromRuntimeToJSON, fromJSONToRuntime } = this.source
     if (useGroup) {
-      if (!recoverGroupsFromJSON) {
-        throw new Error(`${id} 必须传入 recoverGroupsFromJSON`)
+      if (!fromJSONToRuntime) {
+        throw new Error(`${id} 必须传入 fromJSONToRuntime`)
       }
-      if (!convertGroupsToJSON) {
-        throw new Error(`${id} 必须传入 convertGroupsToJSON`)
+      if (!fromRuntimeToJSON) {
+        throw new Error(`${id} 必须传入 fromRuntimeToJSON`)
       }
     }
 
@@ -268,7 +268,7 @@ export class DropDesigner extends Component {
     })
 
     elements.forEach((element) => {
-      const [id, props, ...children] = element
+      const [id, _props, ..._children] = element
       const source = sources.find(item => item.id === id)
 
       // 清除不存在的素材
@@ -278,10 +278,12 @@ export class DropDesigner extends Component {
       }
 
       const item = this.createAndPutItem(this.items.length - 1, source)
-      item.setExpProps(props)
 
-      const { recoverGroupsFromJSON } = source
-      item.elements = recoverGroupsFromJSON ? recoverGroupsFromJSON(children) : children
+      const { fromJSONToRuntime } = source
+      const [props, children] = fromJSONToRuntime ? fromJSONToRuntime.call(item, _props, _children) : [_props, _children]
+
+      item.setExpProps(props)
+      item.elements = children
     })
     this.forceUpdate()
 
@@ -339,12 +341,16 @@ export class DropDesigner extends Component {
     setTimeout(() => {
       this.handleChange()
       this.mountItem(item)
+      this.handleSelect({}, item)
     }, 32)
   }
   canDrop = (current) => {
-    const { source, max } = this.props
+    const { source, max, type } = this.props
     if (source && source.allows) {
       return source.allows.includes(current.id) || (current.tag && source.allows.includes(current.tag))
+    }
+    else if (current.needs && !type) {
+      return current.needs.includes('!')
     }
     else if (current.needs) {
       return source ? current.needs.includes(source.id) || (source.tag && current.needs.includes(source.tag)) : false
@@ -375,7 +381,9 @@ export class DropDesigner extends Component {
       onChange(this.items.filter(item => !!item))
     }
   }
-  handleRemove = (item) => {
+  handleRemove = (e, item) => {
+    e.stopPropagation && e.stopPropagation()
+
     // 卸载DOM
     item.source.unmount(item.el.current)
 
@@ -387,7 +395,13 @@ export class DropDesigner extends Component {
     onRemove && onRemove(item)
     this.handleChange()
   }
-  handleSelect = (item) => {
+  handleSelect = (e, item) => {
+    e.stopPropagation && e.stopPropagation()
+
+    if (store.getState() === item) {
+      return
+    }
+
     const { onSelect } = this.props
     store.dispatch(item) // 触发更新
     onSelect && onSelect(item)
@@ -433,22 +447,23 @@ export class DropDesigner extends Component {
               className={classnames('drop-designer__row drop-designer__content', 'drop-designer__content--' + item.source.id)}
               render={(drag) => {
                 return (
-                  <Section stylesheet={[
-                    classnames(
-                      'drop-designer__item',
-                      selected && selected.id === item.id ? 'drop-designer__item--selected' : '',
-                      // 自定义纵横模式
-                      item.source.direction === 'h' ? 'drop-designer__item--horizontal' : 'drop-designer__item--vertical',
-                    ),
-                    // 支持自定义背景色
-                    item.source.color ? { backgroundColor: item.source.color } : null,
-                  ]}>
+                  <Section
+                    stylesheet={[
+                      classnames(
+                        'drop-designer__item',
+                        selected && selected.id === item.id ? 'drop-designer__item--selected' : '',
+                        // 自定义纵横模式
+                        item.source.direction === 'h' ? 'drop-designer__item--horizontal' : 'drop-designer__item--vertical',
+                      ),
+                      // 支持自定义背景色
+                      item.source.color ? { backgroundColor: item.source.color } : null,
+                    ]}
+                    onHit={(e) => this.handleSelect(e, item)}
+                  >
                     <div className={classnames('drop-designer__item__content')} ref={item.el}></div>
                     <Section stylesheet={[classnames('drop-designer__item__actions')]}>
                       <span className={classnames('drop-designer__item__move')} ref={drag}><BsArrowsMove /></span>
-                      <If is={!!item.source.props && item.source.props.length > 0} render={() => <Text stylesheet={[classnames('drop-designer__item__operator')]}><BsGear onClick={() => this.handleSelect(item)} /></Text>} />
-                      <Confirm trigger={(show) => <Text stylesheet={[classnames('drop-designer__item__operator')]}><BsTrash onClick={show} /></Text>} onSubmit={() => this.handleRemove(item)} content="确定删除吗？" />
-                      <Text stylesheet={[classnames('drop-designer__item__name')]}>{item.source.title + (item.source.title !== item.source.id ? ' ' + item.source.id : '')}</Text>
+                      <Confirm trigger={(show) => <Text stylesheet={[classnames('drop-designer__item__operator')]}><BsTrash onClick={show} /></Text>} onSubmit={(e) => this.handleRemove(e, item)} content="确定删除吗？" />
                     </Section>
                   </Section>
                 )

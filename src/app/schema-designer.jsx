@@ -383,11 +383,11 @@ class MetaForm extends Component {
     }
 
     const handleAddCustomField = (field) => {
-      if (this.state[field]) {
+      if (this.state.form[field]) {
         throw new Error('不允许添加已经存在的属性')
       }
       handleChangeState(state => {
-        state[field] = {
+        state.form[field] = {
           type: 0,
           params: '',
           value: '',
@@ -397,7 +397,7 @@ class MetaForm extends Component {
 
     const handleRemoveCustomField = (field) => {
       const { [field]: _, ...state } = this.state
-      delete this.state[field] // react无法通过setState删除一个属性
+      delete this.state.form[field] // react无法通过setState删除一个属性
       this.setState(state)
     }
 

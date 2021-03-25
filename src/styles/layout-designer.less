@@ -7,28 +7,17 @@
     display: flex;
     flex-direction: column;
 
-    @{NAMESPACE}__label {
-      width: 80px;
-    }
-
     &-menus {
-      display: flex;
-      align-items: flex-start;
+      border-bottom: #f1f1f1 solid 1px;
     }
-    &-menu {
-      margin: 10px;
-      margin-right: 0;
-      font-size: 12px;
-      cursor: pointer;
 
-      &--active {
-        color: @PRIMARY_COLOR_DARK;
-        border-bottom: @PRIMARY_COLOR_DARK solid 3px;
-      }
+    &-content {
+      flex: 1;
+      overflow: auto;
     }
-  }
-  &__setting {
-    flex: 1;
-    overflow: auto;
+
+    @{NAMESPACE}__label {
+      font-weight: bold;
+    }
   }
 }

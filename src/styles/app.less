@@ -69,16 +69,20 @@
     overflow: auto;
   }
   &__sidebar {
-    width: 300px;
+    width: 250px;
     overflow: auto;
   }
   &__sidebar--left {
-    border-right: #f1f1f1 solid 1px;
+    // border-right: #f1f1f1 solid 1px;
+    // box-shadow: 0 5px 5px #ccc;
+    margin-right: 10px;
   }
   &__sidebar--right {
-    border-left: #f1f1f1 solid 1px;
+    // border-left: #f1f1f1 solid 1px;
     display: flex;
     flex-direction: column;
+    // box-shadow: 0 -5px 5px #ccc;
+    margin-left: 10px;
   }
   &__sidebar--right &__form--aside {
     flex: 1;

@@ -1,12 +1,37 @@
 import './styles/formast.less'
 
 import { createFormastDesigner } from '../../src/index.js'
+import { Input, Textarea, Select, FormGroup, FormItem } from '../../src/config/layouts.jsx' // 内置的例子
 import { Popup } from '../../src/libs/popup.js'
-import exampleJson from './example.json'
+
+const layoutSetting = {
+  groups: [
+    {
+      id: 'layout',
+      title: '布局素材',
+      items: [
+        FormGroup,
+        FormItem,
+      ],
+    },
+    {
+      id: 'atom',
+      title: '原子素材',
+      items: [
+        Input,
+        Textarea,
+        Select,
+      ],
+    },
+  ],
+}
 
 const cacheJson = sessionStorage.getItem('__JSON__')
-const json = cacheJson ? JSON.parse(cacheJson) : exampleJson
-const editor = createFormastDesigner('#form-editor', { json })
+const json = cacheJson ? JSON.parse(cacheJson) : {}
+const editor = createFormastDesigner('#form-editor', {
+  json,
+  layoutSetting,
+})
 
 editor.on('save', (json) => {
   console.log(json)

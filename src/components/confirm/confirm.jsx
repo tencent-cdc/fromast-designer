@@ -6,14 +6,14 @@ export function Confirm(props) {
   const { title, content, onCancel, onSubmit, width, trigger } = props
   const [isShow, toggleShow] = useState(false)
 
-  const handleCancel = useCallback(() => {
+  const handleCancel = useCallback((e) => {
     toggleShow(false)
-    onCancel && onCancel()
+    onCancel && onCancel(e)
   }, [])
 
-  const handleSubmit = useCallback(() => {
+  const handleSubmit = useCallback((e) => {
     toggleShow(false)
-    onSubmit && onSubmit()
+    onSubmit && onSubmit(e)
   }, [])
 
   const handleShow = useCallback(() => {

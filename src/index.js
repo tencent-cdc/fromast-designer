@@ -1,13 +1,14 @@
 import { unmount, update } from 'nautil/dom'
 import { isString, clone } from 'ts-fns'
 import { Popup } from './libs/popup.js'
-import { React } from 'nautil'
-import { FormastComponents } from '@tencent/formast/react'
-
 import App from './app/app.jsx'
+import * as Icons from './components/icon/index.js'
 
-// 导出内部接口，方便开发者进行修改
-export { React, FormastComponents }
+const icons = Object.keys(Icons)
+
+export { React } from 'nautil'
+export * from './config/constants.js'
+export { icons }
 
 export class FormastDesigner {
   constructor(config = {}) {

@@ -1,7 +1,7 @@
 import { React, Component, Section, ifexist, Any, nonable, Int } from 'nautil'
 import { classnames } from '../../utils'
 import { DragDesigner, DropDesigner, ConfigType } from '../drag-drop/drag-drop-designer.jsx'
-import { each } from 'ts-fns'
+import { each, isArray } from 'ts-fns'
 
 export class Designer extends Component {
   static props = {
@@ -30,7 +30,7 @@ export class Designer extends Component {
 
     const extract = (monitor) => {
       const { source, props, children } = monitor
-      const { id, convertGroupsToJSON } = source
+      const { id, fromRuntimeToJSON } = source
       const attrs = {}
       each(props, (data, key) => {
         const { type, params, value } = data
@@ -46,29 +46,33 @@ export class Designer extends Component {
       })
 
       if (children.length && isArray(children[0]) && isArray(children[0][0])) {
-        if (!convertGroupsToJSON) {
-          throw new Error(`${id} 必须传入 convertGroupsToJSON`)
+        if (!fromRuntimeToJSON) {
+          throw new Error(`${id} 必须传入 fromRuntimeToJSON`)
         }
+      }
 
-        const items = groups.map(items => items.map(extract))
-        const children = convertGroupsToJSON(items)
-        return [id, attrs, ...children]
+      if (fromRuntimeToJSON) {
+        const items = children.map(items => items.map(extract))
+        const [_attrs, _children] = fromRuntimeToJSON.call(monitor, attrs, items)
+        return [id, _attrs, ..._children]
       }
 
       return [id, attrs, ...children.map(extract)]
     }
-    const jsx = monitors.length ? extract(monitors[0]) : null // 只需要顶层第一个
 
+    const jsx = monitors.length ? extract(monitors[0]) : null // 只需要顶层第一个
     onChange(jsx)
   }
 
   render() {
-    const { elements, config, buttons, settings, expParser, max } = this.props
+    const { elements, config, expParser, max, settings } = this.props
 
     return (
       <>
+        <Section stylesheet={[classnames('sidebar sidebar--left designer__sidebar dragable')]}>
+          <DragDesigner config={config} />
+        </Section>
         <Section stylesheet={[classnames('main designer__main')]}>
-          {buttons ? <Section stylesheet={[classnames('designer__buttons')]}>{buttons}</Section> : null}
           <Section stylesheet={classnames('designer__canvas')}>
             <DropDesigner
               onChange={this.handleChange}
@@ -80,11 +84,12 @@ export class Designer extends Component {
               elements={elements}
             />
           </Section>
-          {settings ? <Section stylesheet={[classnames('designer__settings')]}>{settings}</Section> : null}
         </Section>
-        <Section stylesheet={[classnames('sidebar sidebar--right designer__sidebar dragable')]}>
-          <DragDesigner config={config} />
-        </Section>
+        {settings ? (
+          <Section stylesheet={[classnames('sidebar sidebar--right designer__sidebar designer__settings')]}>
+            {settings}
+          </Section>
+        ) : null}
       </>
     )
   }

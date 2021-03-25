@@ -87,7 +87,22 @@
     }
 
     &--aside &-item {
-      flex-wrap: wrap;
+      display: block;
+    }
+
+    &--aside @{NAMESPACE}__input,
+    &--aside @{NAMESPACE}__select,
+    &--aside @{NAMESPACE}__textarea {
+      display: block;
+      width: calc(100% - 22px) !important;
+    }
+
+    &--aside @{NAMESPACE}__select {
+      width: 100% !important;
+    }
+
+    &--aside @{NAMESPACE}__textarea {
+      min-height: 2.5em;
     }
 
     &--aside @{NAMESPACE}__label {

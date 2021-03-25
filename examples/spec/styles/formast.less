@@ -1,36 +1,25 @@
-.formast {
-  &__input,
-  &__textarea,
-  &__select {
+.formast__form-item {
+  display: flex;
+  align-items: center;
+
+  &__label {
+    margin-right: 5px;
+  }
+  &__content {
+    flex: 1;
+  }
+
+  input,
+  textarea,
+  select {
     background-color: #fff;
     border: #dedede solid 1px;
     padding: 5px;
-    display: flex;
+    width: 200px;
   }
 
-  &__input input,
-  &__textarea textarea,
-  &__select select {
-    flex: 1;
-    border: 0;
-    background: transparent;
-  }
-
-  &__textarea textarea {
+  textarea {
     resize: vertical;
     min-height: 40px;
-  }
-
-  &__form-view {
-    width: 600px;
-  }
-}
-
-.formast-designer__drop-designer {
-  &__content--FormView {
-    max-width: 600px;
-  }
-  &__content--FormView + &__dropbox:last-of-type {
-    flex: 1 !important; // 强制沾满最后一格
   }
 }

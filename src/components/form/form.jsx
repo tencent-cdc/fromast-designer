@@ -51,9 +51,15 @@ export const Form = NForm.extend(props => ({
   deprecated: ['aside'],
 }))
 
-export const FormItem = Section.extend({
-  stylesheet: [classnames('form-item')],
-})
+export const FormItem = Section.extend(props => ({
+  stylesheet: [
+    classnames(
+      'form-item',
+      props.small ? 'form-item--small' : null,
+    ),
+  ],
+  deprecated: ['small'],
+}))
 
 export const FormLoop = (props) => {
   const { items, render, onAdd, onDel, onChange } = props

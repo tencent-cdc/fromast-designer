@@ -49,6 +49,10 @@ export const Label = Text.extend({
 export const Form = NForm.extend(props => ({
   stylesheet: [classnames('form', props.aside ? 'form--aside' : null)],
   deprecated: ['aside'],
+  props: {
+    ...props,
+    onSubmit: props.onSubmit || (e => e.preventDefault()),
+  },
 }))
 
 export const FormItem = Section.extend(props => ({

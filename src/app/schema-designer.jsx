@@ -518,7 +518,7 @@ class MetaForm extends Component {
                     items={validators}
                     onAdd={handleAddValidator}
                     onDel={handleDelValidator}
-                    onChange={validators => handleChangeForm({ validators })}
+                    onChange={validators => this.setState({ validators })}
                     render={(i, validator, onChange) => {
                       return (
                         <>

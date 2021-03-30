@@ -26,9 +26,9 @@ class App extends Component {
     onJSONChange(next)
   }
 
-  handleComponentsChange = (items) => {
+  handleComponentsChange = (components) => {
     const { json = {}, onJSONChange } = this.props
-    const next = { ...json, items }
+    const next = { ...json, components }
     onJSONChange(next)
   }
 
@@ -61,10 +61,11 @@ class App extends Component {
     const { model, components = {}, layout = {} } = json
     const disabled = [config.disableModel, config.disableComponents, config.disableLayout].filter(item => !!item).length > 1
     const hasNoBtns = [config.disableSave, config.disableReset, config.disableImport, config.disableExport].filter(item => !!item).length === 4
+
     return (
       <DndProvider backend={HTML5Backend}>
         <Section stylesheet={[classnames('app')]}>
-          <If is={!disabled && !hasNoBtns}>
+          <If is={!disabled || !hasNoBtns}>
             <Section stylesheet={[classnames('app__top-bar')]}>
               <If is={!disabled}>
                 {!config.disableModel ? <Section stylesheet={[classnames('app__top-tab', activeTopTab === 'model' ? 'app__top-tab--active' : null)]} onHit={() => setActiveTopTab('model')}>模型设计</Section> : null}
@@ -81,9 +82,9 @@ class App extends Component {
               </If>
             </Section>
           </If>
-          {!config.disableModel && activeTopTab === 'model' ? <ModelDesigner config={config.modelSetting} modelJSON={model} onModelJSONChange={this.handleModelJSONChange} /> : null}
-          {!config.disableComponents && activeTopTab === 'components' ? <ComponentsDesigner config={config.componentsSetting} componentsJSON={components} onComponentsJSONChange={this.handleComponentsChange} /> : null}
-          {!config.disableLayout && activeTopTab === 'layout' ? <LayoutDesigner config={config.layoutSetting} json={json} onLayoutChange={this.handleLayoutChange} /> : null}
+          {!config.disableModel && activeTopTab === 'model' ? <ModelDesigner modelConfig={config.model} modelJSON={model} onModelJSONChange={this.handleModelJSONChange} /> : null}
+          {!config.disableComponents && activeTopTab === 'components' ? <ComponentsDesigner config={config} json={json} onComponentsJSONChange={this.handleComponentsChange} /> : null}
+          {!config.disableLayout && activeTopTab === 'layout' ? <LayoutDesigner layoutConfig={config.layout} json={json} onLayoutJSONChange={this.handleLayoutChange} useComponents={true} /> : null}
         </Section>
       </DndProvider>
     )

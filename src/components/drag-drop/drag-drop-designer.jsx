@@ -1,4 +1,4 @@
-import { React, Component, Section, Text, createRef, Each, nonable, ifexist, List, Dict, Enum } from 'nautil'
+import { React, Component, Section, Text, createRef, Each, nonable, ifexist, List, Dict, Enum, Store } from 'nautil'
 import { DropBox, DragBox } from './drag-drop.jsx'
 import { classnames, parseKey } from '../../utils'
 import { DndProvider } from 'react-dnd'
@@ -6,10 +6,9 @@ import { HTML5Backend } from 'react-dnd-html5-backend'
 import { createRandomString, each } from 'ts-fns'
 import { Confirm } from '../confirm/confirm.jsx'
 import { VALUE_TYPES, COMPONENT_TYPES } from '../../config/constants.js'
-import { isFunction, throttle, define, find, isArray } from 'ts-fns'
+import { isFunction, find, isArray } from 'ts-fns'
 import * as icons from '../icon'
 import { BsTrash, BsArrowsMove } from '../icon'
-import { useStore, store } from './store.js'
 
 export const ConfigType = new Dict({
   groups: [
@@ -20,6 +19,7 @@ export const ConfigType = new Dict({
         {
           id: String,
           type: new Enum(Object.values(COMPONENT_TYPES)),
+          sort: ifexist(Number),
           title: String,
           icon: ifexist(String),
           direction: ifexist('h'),
@@ -85,7 +85,7 @@ const getExp = (str) => {
 }
 
 export class Monitor {
-  constructor({ el, source, getPassedProps, ...options }) {
+  constructor({ el, store, source, getPassedProps, ...options }) {
     this.id = createRandomString(8)
     this.el = el
     this.source = source
@@ -94,6 +94,7 @@ export class Monitor {
     this.options = options
     this.children = []
     this.elements = []
+    this.store = store
 
     this.bindField = ''
 
@@ -102,6 +103,7 @@ export class Monitor {
     }
   }
   DropBox = (props) => {
+    const { store } = this
     const { config, onSelect, onRemove, onChange, expParser } = this.getPassedProps()
     const { index } = props
     const useGroup = typeof index === 'number'
@@ -136,6 +138,7 @@ export class Monitor {
             }
             onChange()
           }}
+          store={store}
         />
       </DndProvider>
     )
@@ -166,13 +169,13 @@ export class Monitor {
     }
     keys.forEach((key) => {
       const { type, value, params, defender } = props[key]
-      if (type <= 0) {
+      if (type === VALUE_TYPES.STR || type === VALUE_TYPES.ENUM) {
         res[key] = value
       }
-      else if (type === 1) {
+      else if (type === VALUE_TYPES.EXP) {
         res[key] = tryGet(value, parse, defender)
       }
-      else if (type === 2) {
+      else if (type === VALUE_TYPES.FN) {
         const items = params.split(',').filter(item => !!item)
         res[key] = (...args) => {
           const locals = {}
@@ -300,8 +303,12 @@ export class DropDesigner extends Component {
     onRemove: true,
     onChange: true,
     onUpdate: false,
+    store: Store,
   }
   static propsCheckAsync = true
+  static defaultProps = {
+    store: new Store(null),
+  }
 
   state = {
     move: null,
@@ -309,7 +316,7 @@ export class DropDesigner extends Component {
   items = [null]
 
   onMounted() {
-    const { elements, config } = this.props
+    const { elements, config, store } = this.props
     if (!elements || !elements.length) {
       return
     }
@@ -360,13 +367,17 @@ export class DropDesigner extends Component {
         this.mountItem(item)
       })
     }, 16)
+
+    store.subscribe(this.forceUpdate)
   }
 
   createAndPutItem(i, source) {
     const el = createRef()
+    const { store } = this.props
     const item = new Monitor({
       el,
       source,
+      store,
       getPassedProps: () => {
         return {
           ...this.props,
@@ -455,6 +466,7 @@ export class DropDesigner extends Component {
     this.handleChange()
   }
   handleSelect = (e, item) => {
+    const { store } = this.props
     e.stopPropagation && e.stopPropagation()
 
     if (store.getState() === item) {
@@ -475,8 +487,8 @@ export class DropDesigner extends Component {
     })
   }
 
-  Render() {
-    const { state: selected } = useStore()
+  render() {
+    const selected = this.props.store.getState()
     const { className, type, source } = this.props
     const items = this.items
     return (

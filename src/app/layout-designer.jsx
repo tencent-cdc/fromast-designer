@@ -1,9 +1,8 @@
-import { React, Component, Section, Text, If, Else, Switch, Case, ifexist } from 'nautil'
+import { React, Component, Section, Text, If, Else, Switch, Case, ifexist, Store } from 'nautil'
 import { render, unmount } from 'nautil/dom'
 import { classnames, getConfig } from '../utils'
 import { Form, FormItem, Label, Input, Textarea, Select } from '../components/form/form.jsx'
 import { RichPropEditor } from '../components/rich-prop-editor/rich-prop-editor.jsx'
-import { Popup } from '../libs/popup.js'
 import { find, compute_, debounce, decideby } from 'ts-fns'
 import { Designer } from '../components/designer/designer.jsx'
 import ScopeX from 'scopex'
@@ -12,19 +11,19 @@ import { Tabs } from '../components/tabs/tabs.jsx'
 import { Prompt } from '../components/prompt/prompt.jsx'
 import { COMPONENT_TYPES } from '../config/constants.js'
 import { globalModelScope } from '../utils'
-import { store, useStore } from '../components/drag-drop/store.js'
 
 export class LayoutDesigner extends Component {
   static props = {
-    config: Object,
+    layoutConfig: Object,
     json: Object,
-    onLayoutChange: true,
+    onLayoutJSONChange: true,
+    useComponents: ifexist(Boolean),
   }
 
   state = {
     bindField: '',
-    aliasFields: [],
-    aliasProps: [],
+    importFields: [],
+    importProps: [],
     activeSetting: 0,
     // 保存配置时使用
     top: null,
@@ -33,20 +32,29 @@ export class LayoutDesigner extends Component {
   data = {
     settingTabs: [
       {
-        text: '数据配置',
+        text: 'UI配置',
         value: 0,
       },
       {
-        text: 'UI配置',
+        text: '数据配置',
         value: 1,
       },
     ]
   }
 
+  store = new Store(null)
+
+  onMounted() {
+    this.store.subscribe(this.forceUpdate)
+  }
+
   handleSaveSettings = debounce(() => {
     const { top } = this.state
-    const { onLayoutChange } = this.props
-    onLayoutChange(top.getHyperJSON())
+    if (!top) {
+      return
+    }
+    const { onLayoutJSONChange } = this.props
+    onLayoutJSONChange(top.getHyperJSON())
   }, 500)
 
   handleChange = (top) => {
@@ -55,16 +63,16 @@ export class LayoutDesigner extends Component {
   }
 
   handleRemove = (item) => {
-    const selectedMonitor = store.getState()
+    const selectedMonitor = this.store.getState()
     if (selectedMonitor && selectedMonitor === item) {
       this.setState({ activeSetting: 0 })
-      store.resetState()
+      this.store.resetState()
     }
   }
   handleSelect = (selectedMonitor) => {
-    const { bindField } = selectedMonitor
-    this.setState({ activeSetting: 0, bindField })
-    store.dispatch(selectedMonitor)
+    const { bindField, source } = selectedMonitor
+    this.setState({ activeSetting: source.type === COMPONENT_TYPES.ATOM ? 1 : 0, bindField })
+    this.store.dispatch(selectedMonitor)
   }
 
   parseExp = (monitor) => (exp, locals) => {
@@ -128,7 +136,7 @@ export class LayoutDesigner extends Component {
 
   handleBindField = (value) => {
     this.setState({ bindField: value }, () => {
-      const selectedMonitor = store.getState()
+      const selectedMonitor = this.store.getState()
       const { fromMetaToProps } = selectedMonitor.source
       const schema = this.props.json?.model?.schema || {}
       const meta = schema[value]
@@ -144,11 +152,11 @@ export class LayoutDesigner extends Component {
     })
   }
 
-  Render() {
-    const { activeSetting, bindField, aliasFields, aliasProps } = this.state
-    const { state: selectedMonitor } = useStore()
+  render() {
+    const { activeSetting, bindField, importFields, importProps } = this.state
+    const selectedMonitor = this.store.getState()
     const { settingTabs } = this.data
-    const { json = {}, config } = this.props
+    const { json = {}, layoutConfig, useComponents } = this.props
     const { model = {}, components = {}, layout = {} } = json
 
     const fields = decideby(() => {
@@ -159,8 +167,8 @@ export class LayoutDesigner extends Component {
       return keys.map((key) => ({ text: model.schema[key].label, value: key }))
     })
 
-    const componentsConfig = this.getComponentsConfig(components)
-    const sourceConfig = getConfig(componentsConfig, getConfig(config))
+    const componentsConfig = useComponents ? this.getComponentsConfig(components) : {}
+    const sourceConfig = getConfig(componentsConfig, getConfig(layoutConfig))
 
     const jsx = layout && find(layout, (_, key) => /^render!$/.test(key))
     const elements = jsx && [jsx]
@@ -178,17 +186,6 @@ export class LayoutDesigner extends Component {
                   <Switch of={activeSetting}>
                     <Case is={0} render={() =>
                       <Form aside>
-                        <If is={selectedMonitor.source.type === COMPONENT_TYPES.ATOM} render={() =>
-                          <FormItem>
-                            <Label>绑定字段</Label>
-                            <Select options={fields} value={bindField} onChange={(e) => this.handleBindField(e.target.value)} placeholder="请选择字段"></Select>
-                          </FormItem>
-                        }>
-                        </If>
-                      </Form>
-                    } />
-                    <Case is={1} render={() =>
-                      <Form aside>
                         {selectedMonitor.source.props.map((item) => {
                           return (
                             <FormItem key={item.key} stylesheet={[classnames('form-item--rich')]}>
@@ -196,6 +193,7 @@ export class LayoutDesigner extends Component {
                                 label={item.title || item.key}
                                 data={selectedMonitor.props[item.key]}
                                 types={item.types}
+                                options={item.options}
                                 onChange={data => {
                                   selectedMonitor.props[item.key] = data
                                   this.update()
@@ -204,6 +202,17 @@ export class LayoutDesigner extends Component {
                             </FormItem>
                           )
                         })}
+                      </Form>
+                    } />
+                    <Case is={1} render={() =>
+                      <Form aside>
+                        <If is={selectedMonitor.source.type === COMPONENT_TYPES.ATOM} render={() =>
+                          <FormItem>
+                            <Label>绑定字段</Label>
+                            <Select options={fields} value={bindField} onChange={(e) => this.handleBindField(e.target.value)} placeholder="请选择字段"></Select>
+                          </FormItem>
+                        }>
+                        </If>
                       </Form>
                     } />
                   </Switch>

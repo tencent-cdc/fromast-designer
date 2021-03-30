@@ -1,7 +1,8 @@
 export const VALUE_TYPES = {
   STR: 0, // 纯文本
-  EXP: 1, // 表达式
-  FN: 2, // 函数式
+  ENUM: 1, // 枚举
+  EXP: 10, // 表达式
+  FN: 20, // 函数式
 }
 
 export const COMPONENT_TYPES = {

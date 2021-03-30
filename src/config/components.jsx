@@ -1,13 +1,13 @@
 import { React } from 'nautil'
 import { unmount, render } from 'nautil/dom'
 import { VALUE_TYPES, COMPONENT_TYPES } from './constants.js'
-import { FormItem as Item } from '@tencent/formast/react-components.js'
+import { Input, FormItem, FormGroup } from '@tencent/formast/react-components'
 
-export const Input = {
+export const InputConfig = {
   id: 'Input',
   type: COMPONENT_TYPES.ATOM,
 
-  title: '单行文本',
+  title: '输入框',
   icon: 'BsPhoneLandscape',
 
   needs: ['FormItem'],
@@ -15,9 +15,23 @@ export const Input = {
   props: [
     {
       key: 'type',
-      types: [VALUE_TYPES.STR],
+      types: [VALUE_TYPES.ENUM],
       value: 'text',
-      disabled: true,
+      options: [
+        { text: '文本', value: 'text' },
+        { text: '数字', value: 'number' },
+        { text: 'URL', value: 'url' },
+        { text: 'EMail', value: 'email' },
+        { text: 'Range', value: 'range' },
+        { text: '日期', value: 'date' },
+        { text: '时间', value: 'time' },
+        { text: '周', value: 'week' },
+        { text: '月份', value: 'month' },
+        { text: '电话', value: 'tel' },
+        { text: '文件', value: 'file' },
+        { text: '密码', value: 'password' },
+        { text: '搜索', value: 'search' },
+      ],
     },
     {
       key: 'value',
@@ -45,17 +59,17 @@ export const Input = {
   mount(el, monitor) {
     const props = monitor.getComputedProps()
     const { placeholder, type } = props
-    render(el, <input type={type} placeholder={placeholder} />)
+    render(el, <Input type={type} placeholder={placeholder} />)
   },
   update(el, monitor) {
-    Input.mount(el, monitor)
+    InputConfig.mount(el, monitor)
   },
   unmount(el) {
     unmount(el)
   },
 }
 
-export const Textarea = {
+export const TextareaConfig = {
   id: 'Textarea',
   type: COMPONENT_TYPES.ATOM,
 
@@ -86,14 +100,14 @@ export const Textarea = {
     render(el, <textarea placeholder={placeholder} />)
   },
   update(el, monitor) {
-    Textarea.mount(el, monitor)
+    TextareaConfig.mount(el, monitor)
   },
   unmount(el) {
     unmount(el)
   },
 }
 
-export const Select = {
+export const SelectConfig = {
   id: 'Select',
   type: COMPONENT_TYPES.ATOM,
 
@@ -136,14 +150,14 @@ export const Select = {
     )
   },
   update(el, monitor) {
-    Select.mount(el, monitor)
+    SelectConfig.mount(el, monitor)
   },
   unmount(el) {
     unmount(el)
   },
 }
 
-export const FormGroup = {
+export const FormGroupConfig = {
   id: 'FormGroup',
   type: COMPONENT_TYPES.VIEW,
 
@@ -152,20 +166,36 @@ export const FormGroup = {
 
   allows: ['FormItem'],
 
+  props: [
+    {
+      key: 'title',
+      title: '标题',
+      types: [VALUE_TYPES.STR, VALUE_TYPES.EXP],
+      value: '组名',
+    },
+    {
+      key: 'hidden',
+      title: '是否隐藏',
+      types: [VALUE_TYPES.EXP],
+      value: 'false',
+    },
+  ],
+
   mount(el, monitor) {
     const { DropBox } = monitor
-    render(el, <div><DropBox /></div>)
+    const props = monitor.getComputedProps()
+    const { title, hidden } = props
+    render(el, <FormGroup title={title} hidden={hidden}><DropBox /></FormGroup>)
   },
   update(el, monitor) {
-    const { DropBox } = monitor
-    render(el, <div><DropBox /></div>)
+    FormGroupConfig.mount(el, monitor)
   },
   unmount(el) {
     unmount(el)
   },
 }
 
-export const FormItem = {
+export const FormItemConfig = {
   id: 'FormItem',
   type: COMPONENT_TYPES.VIEW,
 
@@ -187,17 +217,17 @@ export const FormItem = {
       title: '是否隐藏',
       types: [VALUE_TYPES.EXP],
       value: 'false',
-    }
+    },
   ],
 
   mount(el, monitor) {
     const { DropBox } = monitor
     const props = monitor.getComputedProps()
     const { label, hidden } = props
-    render(el, <Item label={label} hidden={hidden}><DropBox /></Item>)
+    render(el, <FormItem label={label} hidden={hidden}><DropBox /></FormItem>)
   },
   update(el, monitor) {
-    FormItem.mount(el, monitor)
+    FormItemConfig.mount(el, monitor)
   },
   unmount(el) {
     unmount(el)

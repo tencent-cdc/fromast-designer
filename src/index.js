@@ -6,7 +6,6 @@ import * as Icons from './components/icon/index.js'
 
 const icons = Object.keys(Icons)
 
-export { React } from 'nautil'
 export * from './config/constants.js'
 export { icons }
 

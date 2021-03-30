@@ -1,26 +1,26 @@
 import './styles/formast.less'
 
 import { createFormastDesigner } from '../../src/index.js'
-import { Input, Textarea, Select, FormGroup, FormItem } from '../../src/config/layouts.jsx' // 内置的例子
+import { InputConfig, TextareaConfig, SelectConfig, FormGroupConfig, FormItemConfig } from '../../src/config/components.jsx' // 内置的例子
 import { Popup } from '../../src/libs/popup.js'
 
-const layoutSetting = {
+const layout = {
   groups: [
     {
       id: 'layout',
       title: '布局素材',
       items: [
-        FormGroup,
-        FormItem,
+        FormGroupConfig,
+        FormItemConfig,
       ],
     },
     {
       id: 'atom',
       title: '原子素材',
       items: [
-        Input,
-        Textarea,
-        Select,
+        InputConfig,
+        TextareaConfig,
+        SelectConfig,
       ],
     },
   ],
@@ -30,7 +30,7 @@ const cacheJson = sessionStorage.getItem('__JSON__')
 const json = cacheJson ? JSON.parse(cacheJson) : {}
 const editor = createFormastDesigner('#form-editor', {
   json,
-  layoutSetting,
+  layout,
 })
 
 editor.on('save', (json) => {

@@ -185,6 +185,12 @@ class MetaForm extends Component {
       value: '',
     },
     {
+      key: 'required',
+      title: '是否必填',
+      types: [VALUE_TYPES.BOOL, VALUE_TYPES.EXP],
+      value: false,
+    },
+    {
       key: 'validators',
       title: '校验器',
       value: [],
@@ -192,6 +198,8 @@ class MetaForm extends Component {
   ]
 
   state = {
+    field: '',
+    validators: [],
     form: {},
   }
 
@@ -398,21 +406,36 @@ class MetaForm extends Component {
   handleSubmit = () => {
     const { form } = this.state
     try {
-      this.setState({ form: {} })
       const json = this.parseMetaToJSON(form)
       this.props.onSubmit(json)
+      this.setState({
+        field: '',
+        validators: [],
+        form: {},
+      })
     }
     catch (e) {
       Popup.toast(e)
     }
   }
 
-  Render() {
-    const { aside, width, title, isShow, onClose, onCancel, data } = this.props
+  onMounted() {
+    this.resetData()
+  }
 
-    useEffect(() => {
+  onUpdated(prevProps) {
+    if (prevProps.data !== this.props.data) {
       this.resetData()
-    }, [data])
+    }
+  }
+
+  render() {
+    const { aside, width, title, isShow, onClose, onCancel } = this.props
+    const { field, validators, form } = this.state
+
+    if (isEmpty(form)) {
+      return null
+    }
 
     const { CustomField } = MetaForm
 
@@ -425,7 +448,7 @@ class MetaForm extends Component {
 
     const handleAddValidator = (index) => {
       handleChangeState(state => {
-        state.form.validators.splice(isEmpty(index) ? 0 : index + 1, 0, {
+        state.validators.splice(isEmpty(index) ? 0 : index + 1, 0, {
           determine: {
             type: VALUE_TYPES.EXP,
             params: '',
@@ -447,7 +470,7 @@ class MetaForm extends Component {
 
     const handleDelValidator = (index) => {
       handleChangeState(state => {
-        state.form.validators.splice(index, 1)
+        state.validators.splice(index, 1)
       })
     }
 
@@ -465,9 +488,8 @@ class MetaForm extends Component {
     }
 
     const handleRemoveCustomField = (field) => {
-      const { [field]: _, ...state } = this.state
-      delete this.state.form[field] // react无法通过setState删除一个属性
-      this.setState(state)
+      const { [field]: _, ...form } = this.state.form
+      this.setState({ form })
     }
 
     const handleChangeForm = (kv) => {
@@ -476,7 +498,6 @@ class MetaForm extends Component {
 
     const editors = this.genEditors()
     const keys = editors.map(item => item.key)
-    const { field, validators, form } = this.state
     const formKeys = Object.keys(form)
     const customKeys = formKeys.filter(key => !keys.includes(key))
 
@@ -488,7 +509,7 @@ class MetaForm extends Component {
             <Input value={field} onChange={(e) => handleChangeState(state => state.field = e.target.value)} />
           </FormItem>
           <Each of={editors} render={(editor) =>
-            <If key={editor.key} is={editor.key === 'field'} render={() => {
+            <If key={editor.key} is={editor.key === 'validators'} render={() => {
               return (
                 <FormItem>
                   <Label>{editor.title}({editor.key})</Label>
@@ -537,7 +558,7 @@ class MetaForm extends Component {
           } />
           {
             customKeys.map((key) => {
-              const custom = customs[key]
+              const custom = form[key]
               const { key: _, ...data } = custom
               return (
                 <FormItem key={key} stylesheet={[classnames('form-item--rich', 'schema-designer-custom-field')]}>

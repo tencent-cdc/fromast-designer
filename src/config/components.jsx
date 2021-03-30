@@ -176,8 +176,8 @@ export const FormGroupConfig = {
     {
       key: 'hidden',
       title: '是否隐藏',
-      types: [VALUE_TYPES.EXP],
-      value: 'false',
+      types: [VALUE_TYPES.BOOL, VALUE_TYPES.EXP],
+      value: false,
     },
   ],
 
@@ -215,8 +215,8 @@ export const FormItemConfig = {
     {
       key: 'hidden',
       title: '是否隐藏',
-      types: [VALUE_TYPES.EXP],
-      value: 'false',
+      types: [VALUE_TYPES.BOOL, VALUE_TYPES.EXP],
+      value: false,
     },
   ],
 

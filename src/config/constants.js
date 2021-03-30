@@ -1,6 +1,7 @@
 export const VALUE_TYPES = {
   STR: 0, // 纯文本
   ENUM: 1, // 枚举
+  BOOL: 2, // 开关
   EXP: 10, // 表达式
   FN: 20, // 函数式
 }

@@ -165,14 +165,10 @@ export class Monitor {
       })
 
       return res
-
     }
     keys.forEach((key) => {
       const { type, value, params, defender } = props[key]
-      if (type === VALUE_TYPES.STR || type === VALUE_TYPES.ENUM) {
-        res[key] = value
-      }
-      else if (type === VALUE_TYPES.EXP) {
+      if (type === VALUE_TYPES.EXP) {
         res[key] = tryGet(value, parse, defender)
       }
       else if (type === VALUE_TYPES.FN) {
@@ -185,6 +181,9 @@ export class Monitor {
           })
           return tryGet(value, (value) => parse(value, locals), defender)
         }
+      }
+      else {
+        res[key] = value
       }
     })
     return res

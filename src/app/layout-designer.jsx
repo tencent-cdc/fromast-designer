@@ -1,7 +1,7 @@
 import { React, Component, Section, Text, If, Else, Switch, Case, ifexist, Store } from 'nautil'
 import { render, unmount } from 'nautil/dom'
 import { classnames, getConfig } from '../utils'
-import { Form, FormItem, Label, Input, Textarea, Select } from '../components/form/form.jsx'
+import { Form, FormItem, Label, Input, Textarea, Select, Switcher } from '../components/form/form.jsx'
 import { RichPropEditor } from '../components/rich-prop-editor/rich-prop-editor.jsx'
 import { find, compute_, debounce, decideby } from 'ts-fns'
 import { Designer } from '../components/designer/designer.jsx'

@@ -100,3 +100,18 @@ export const FormLoop = (props) => {
     </Section>
   )
 }
+
+export function Switcher(props) {
+  const { className, value, onChange } = props
+  const handleChange = (e) => {
+    onChange(e, !value)
+  }
+  return (
+    <span className={classnames('switcher', className)}>
+      <label className={classnames('switcher-content')}>
+        <input type="checkbox" checked={!!value} onChange={handleChange} />
+        <span></span>
+      </label>
+    </span>
+  )
+}

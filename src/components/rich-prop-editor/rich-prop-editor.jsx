@@ -22,9 +22,8 @@ export function RichPropEditor(props) {
         data.value = data.value + ''
       }
       else if (type === VALUE_TYPES.ENUM) {
-        const value = +data.value
-        if (isNaN(value)) {
-          data.value = data.defender ? data.defender(value) : 0
+        if (!(options && options.some(item => item.value === data.value))) {
+          data.value = options ? options[0].value : data.defender ? data.defender(data.value) : 0
         }
       }
       else if (type === VALUE_TYPES.BOOL) {

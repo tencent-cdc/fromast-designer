@@ -1,4 +1,4 @@
-import { React, Component, useState, useRef, Section, useCallback, produce, useEffect, If, Validator, Each, ElseIf, Else } from 'nautil'
+import { React, Component, useState, useRef, Section, useCallback, produce, useEffect, If, Validator, Each, ElseIf, Else, TySheMo } from 'nautil'
 import { isEmpty, each, isUndefined, isString } from 'ts-fns'
 import { Button } from '../components/button/button.jsx'
 import { Modal, AutoModal } from '../components/modal/modal.jsx'
@@ -181,8 +181,9 @@ class MetaForm extends Component {
     {
       key: 'type',
       title: '数据类型',
-      types: [VALUE_TYPES.STR, VALUE_TYPES.EXP],
-      value: '',
+      types: [VALUE_TYPES.ENUM, VALUE_TYPES.STR, VALUE_TYPES.EXP],
+      options: Object.keys(TySheMo.Parser.defaultTypes).map(value => ({ text: value, value })),
+      value: 'string',
     },
     {
       key: 'required',

@@ -1,4 +1,4 @@
-import { React, Component, useState, useRef, Section, useCallback, produce, useEffect, If, Validator } from 'nautil'
+import { React, Component, useState, useRef, Section, useCallback, produce, useEffect, If, Validator, Each, ElseIf, Else } from 'nautil'
 import { isEmpty, each, isUndefined, isString } from 'ts-fns'
 import { Button } from '../components/button/button.jsx'
 import { Modal, AutoModal } from '../components/modal/modal.jsx'
@@ -45,7 +45,7 @@ export class SchemaDesigner extends Component {
   }
 
   Render() {
-    const { schemaJSON = {}, CreateSubmodel } = this.props
+    const { schemaJSON = {}, CreateSubmodel, config } = this.props
     const fields = Object.keys(schemaJSON)
 
     const popup = usePopup()
@@ -138,6 +138,7 @@ export class SchemaDesigner extends Component {
           onClose={() => this.setState({ isShow: false })}
           onCancel={() => this.setState({ isShow: false })}
           data={this.state.editData}
+          config={config}
         />
       </>
     )
@@ -164,48 +165,77 @@ class MetaForm extends Component {
     )
   }
 
-  static defaultFormData = {
-    field: '',
-    label: {
-      type: VALUE_TYPES.STR,
-      params: '',
+  static defaultConfig = [
+    {
+      key: 'label',
+      title: '显示名',
+      types: [VALUE_TYPES.STR],
       value: '',
     },
-    default: {
-      type: VALUE_TYPES.EXP,
-      params: '',
+    {
+      key: 'default',
+      title: '默认值',
+      types: [VALUE_TYPES.STR, VALUE_TYPES.EXP, VALUE_TYPES.FN],
       value: '',
     },
-    type: {
-      type: VALUE_TYPES.STR,
-      params: '',
+    {
+      key: 'type',
+      title: '数据类型',
+      types: [VALUE_TYPES.STR, VALUE_TYPES.EXP],
       value: '',
     },
-    required: {
-      type: VALUE_TYPES.EXP,
-      params: '',
-      value: '',
-    },
-    disabled: {
-      type: VALUE_TYPES.EXP,
-      params: '',
-      value: '',
-    },
-    validators: [],
-  }
+    {
+      key: 'validators',
+      title: '校验器',
+      value: [],
+    }
+  ]
 
   state = {
-    form: MetaForm.defaultFormData,
+    form: {},
+  }
+
+  genEditors() {
+    const { config = {}, data } = this.props
+    const { defaultConfig } = MetaForm
+    const { attributes = [], rules = [] } = config
+
+    const mergedEditors = [
+      ...defaultConfig,
+    ]
+
+    attributes.forEach((item) => {
+      const existing = mergedEditors.find(one => one.key === item.key)
+      if (existing) {
+        Object.assign(existing, item)
+      }
+      else {
+        mergedEditors.push(item)
+      }
+    })
+
+    // 更新数据时
+    if (data) {
+      const [field] = data
+      const relatedRules = rules.filter(item => item.field === field)
+      relatedRules.forEach((rule) => {
+        const existing = mergedEditors.find(one => one.key === rule.key)
+        if (existing) {
+          Object.assign(existing, rule)
+        }
+      })
+    }
+
+    return mergedEditors
   }
 
   // 将填写的内容生成最后要保存的JSON
-  parseMetaToJSON(form) {
-    const { field, ...data } = form
+  parseMetaToJSON() {
+    const editors = this.genEditors()
+    const { field, validators, form } = this.state
+
     const parse = ({ type, params, value }, key) => {
-      if (type === VALUE_TYPES.STR) {
-        return ['', value]
-      }
-      else if (type === VALUE_TYPES.EXP) {
+      if (type === VALUE_TYPES.EXP) {
         try {
           return ['', value ? JSON.parse(value) : value]
         }
@@ -216,42 +246,53 @@ class MetaForm extends Component {
       else if (type === VALUE_TYPES.FN) {
         return [`(${params})`, value]
       }
-    }
-    const json = {}
-    each(data, (v, key) => {
-      if (key === 'validators') {
-        json.validators = v.map((item, i) => {
-          const { message, validate, determine } = item
-
-          // 非函数形式
-          // tyshemo.Loader 支持形式如 validators: [ "required('some is required!')" ] 的校验器
-          if (validate.type === VALUE_TYPES.EXP) {
-            const [key, params] = validate.value ? parseKey(validate.value) : []
-            if (Validator[key] && params) {
-              const validator = validate.value
-              return validator
-            }
-            else {
-              throw new Error(`validators[${i}].validate 填写的表达式不符合内置校验器写法`)
-            }
-          }
-
-          const [dp, dv] = parse(determine, `validators[${i}].determine`)
-          const [vp, vv] = parse(validate, `validators[${i}].validate`)
-          const [mp, mv] = parse(message, `validators[${i}].message`)
-          const validator = {
-            [`determine${dp}`]: dv,
-            [`validate${vp}`]: vv,
-            [`message${mp}`]: mv,
-          }
-          return validator
-        })
-      }
       else {
-        const [params, exp] = parse(v, key)
+        return ['', value]
+      }
+    }
+
+    const json = {
+      validators: validators.map((item, i) => {
+        const { message, validate, determine } = item
+
+        // 非函数形式
+        // tyshemo.Loader 支持形式如 validators: [ "required('some is required!')" ] 的校验器
+        if (validate.type === VALUE_TYPES.EXP) {
+          const [key, params] = validate.value ? parseKey(validate.value) : []
+          if (Validator[key] && params) {
+            const validator = validate.value
+            return validator
+          }
+          else {
+            throw new Error(`validators[${i}].validate 填写的表达式不符合内置校验器写法`)
+          }
+        }
+
+        const [dp, dv] = parse(determine, `validators[${i}].determine`)
+        const [vp, vv] = parse(validate, `validators[${i}].validate`)
+        const [mp, mv] = parse(message, `validators[${i}].message`)
+        const validator = {
+          [`determine${dp}`]: dv,
+          [`validate${vp}`]: vv,
+          [`message${mp}`]: mv,
+        }
+        return validator
+      }),
+    }
+
+    editors.forEach((item) => {
+      const { key } = item
+      if (key === 'field' || key === 'validators') {
+        return
+      }
+
+      const pack = form[key]
+      if (pack) {
+        const [params, exp] = parse(pack, key)
         json[key + params] = exp
       }
     })
+
     return [field, json]
   }
 
@@ -265,21 +306,28 @@ class MetaForm extends Component {
         const [key, params] = parseKey(attr)
         if (params) {
           info[key] = {
-            type: 2,
+            type: VALUE_TYPES.FN,
             params: params.join(','),
             value: isUndefined(value) ? '' : value,
           }
         }
+        else if (typeof value === 'boolean') {
+          info[key] = {
+            type: VALUE_TYPES.BOOL,
+            params: '',
+            value,
+          }
+        }
         else if (typeof value !== 'string') {
           info[key] = {
-            type: 1,
+            type: VALUE_TYPES.EXP,
             params: '',
             value: value && typeof value === 'object' ? JSON.stringify(value, null, 4) : value + '',
           }
         }
         else {
           info[key] = {
-            type: 0,
+            type: VALUE_TYPES.STR,
             params: '',
             value: isUndefined(value) ? '' : value,
           }
@@ -311,28 +359,48 @@ class MetaForm extends Component {
       return parse(item)
     })
 
+    const form = parse(attrs)
+
     return {
       field,
       validators,
-      ...parse(attrs),
+      form,
     }
   }
 
   resetData() {
     const { data } = this.props
+    const editors = this.genEditors()
+    const form = {}
+    editors.forEach((editor) => {
+      const { key, types, value } = editor
+      if (key === 'validators') {
+        return
+      }
+      const type = types ? types[0] : 0
+      form[key] = {
+        type,
+        value,
+      }
+    })
+
     if (data) {
       const [field, meta] = data
-      const form = { ...MetaForm.defaultFormData, ...this.parseSchemaToEdit(field, meta) }
-      this.setState({ form })
+      const { validators, form: _form } = this.parseSchemaToEdit(field, meta)
+      Object.assign(form, _form)
+      this.setState({ field, validators, form })
+    }
+    else {
+      this.setState({ field: '', validators: [], form })
     }
   }
 
   handleSubmit = () => {
     const { form } = this.state
     try {
+      this.setState({ form: {} })
       const json = this.parseMetaToJSON(form)
       this.props.onSubmit(json)
-      this.setState({ form: MetaForm.defaultFormData })
     }
     catch (e) {
       Popup.toast(e)
@@ -389,7 +457,7 @@ class MetaForm extends Component {
       }
       handleChangeState(state => {
         state.form[field] = {
-          type: 0,
+          type: VALUE_TYPES.STR,
           params: '',
           value: '',
         }
@@ -406,58 +474,67 @@ class MetaForm extends Component {
       handleChangeState(state => Object.assign(state.form, kv))
     }
 
-    const { field, default: defaultValue, label, type, required, disabled, validators = [], ...customs } = this.state.form
-    const customKeys = Object.keys(customs)
+    const editors = this.genEditors()
+    const keys = editors.map(item => item.key)
+    const { field, validators, form } = this.state
+    const formKeys = Object.keys(form)
+    const customKeys = formKeys.filter(key => !keys.includes(key))
 
     return (
       <Modal isShow={isShow} width={width} title={title} onSubmit={this.handleSubmit} onCancel={onCancel} onClose={onClose} className={classnames('schema-designer__modal')}>
         <Form aside={aside}>
           <FormItem>
-            <Label>字段 Key</Label>
-            <Input value={field} onChange={(e) => handleChangeState(state => state.form.field = e.target.value)} />
+            <Label>字段名</Label>
+            <Input value={field} onChange={(e) => handleChangeState(state => state.field = e.target.value)} />
           </FormItem>
-          <FormItem stylesheet={[classnames('form-item--rich')]}>
-            <RichPropEditor label="显示名(label)" types={[VALUE_TYPES.STR, VALUE_TYPES.EXP]} data={label} onChange={data => handleChangeForm({ label: data })} />
-          </FormItem>
-          <FormItem stylesheet={[classnames('form-item--rich')]}>
-            <RichPropEditor label="类型(type)" types={[VALUE_TYPES.STR, VALUE_TYPES.EXP]} data={type} onChange={data => handleChangeForm({ type: data })} />
-          </FormItem>
-          <FormItem stylesheet={[classnames('form-item--rich')]}>
-            <RichPropEditor label="默认值(default)" types={[VALUE_TYPES.STR, VALUE_TYPES.EXP]} data={defaultValue} onChange={data => handleChangeForm({ default: data })} />
-          </FormItem>
-          <FormItem stylesheet={[classnames('form-item--rich')]}>
-            <RichPropEditor label="是否必填(required)" types={[VALUE_TYPES.EXP, VALUE_TYPES.FN]} data={required} onChange={data => handleChangeForm({ required: data })} />
-          </FormItem>
-          <FormItem stylesheet={[classnames('form-item--rich')]}>
-            <RichPropEditor label="是否禁用(disabled)" types={[VALUE_TYPES.EXP, VALUE_TYPES.FN]} data={disabled} onChange={data => handleChangeForm({ disabled: data })} />
-          </FormItem>
-          <FormItem>
-            <Label>校验器(validators)</Label>
-            <FormLoop
-              items={validators}
-              onAdd={handleAddValidator}
-              onDel={handleDelValidator}
-              onChange={validators => handleChangeForm({ validators })}
-              render={(i, validator, onChange) => {
+          <Each of={editors} render={(editor) =>
+            <If key={editor.key} is={editor.key === 'field'} render={() => {
+              return (
+                <FormItem>
+                  <Label>{editor.title}({editor.key})</Label>
+                  <FormLoop
+                    items={validators}
+                    onAdd={handleAddValidator}
+                    onDel={handleDelValidator}
+                    onChange={validators => handleChangeForm({ validators })}
+                    render={(i, validator, onChange) => {
+                      return (
+                        <>
+                          <FormItem stylesheet={[classnames('form-item--rich')]}>
+                            <RichPropEditor label="校验函数(validate)" types={[VALUE_TYPES.EXP, VALUE_TYPES.FN]} data={validator.validate} onChange={validate => onChange({ validate })} />
+                          </FormItem>
+                          <If is={validator.validate.type === VALUE_TYPES.FN}>
+                            <FormItem stylesheet={[classnames('form-item--rich')]}>
+                              <RichPropEditor label="是否校验(determine)" types={[VALUE_TYPES.EXP, VALUE_TYPES.FN]} data={validator.determine} onChange={determine => onChange({ determine })} />
+                            </FormItem>
+                            <FormItem stylesheet={[classnames('form-item--rich')]}>
+                              <RichPropEditor label="消息(message)" types={[VALUE_TYPES.STR ,VALUE_TYPES.EXP, VALUE_TYPES.FN]} data={validator.message} onChange={message => onChange({ message })} />
+                            </FormItem>
+                          </If>
+                          {i !== validators.length - 1 ? <Section stylesheet={[classnames('line')]} /> : null}
+                        </>
+                      )
+                    }}
+                  />
+                </FormItem>
+              )
+            }}>
+              <Else render={() => {
                 return (
-                  <>
-                    <FormItem stylesheet={[classnames('form-item--rich')]}>
-                      <RichPropEditor label="校验函数(validate)" types={[VALUE_TYPES.EXP, VALUE_TYPES.FN]} data={validator.validate} onChange={validate => onChange({ validate })} />
-                    </FormItem>
-                    <If is={validator.validate.type === VALUE_TYPES.FN}>
-                      <FormItem stylesheet={[classnames('form-item--rich')]}>
-                        <RichPropEditor label="是否校验(determine)" types={[VALUE_TYPES.EXP, VALUE_TYPES.FN]} data={validator.determine} onChange={determine => onChange({ determine })} />
-                      </FormItem>
-                      <FormItem stylesheet={[classnames('form-item--rich')]}>
-                        <RichPropEditor label="消息(message)" types={[VALUE_TYPES.STR ,VALUE_TYPES.EXP, VALUE_TYPES.FN]} data={validator.message} onChange={message => onChange({ message })} />
-                      </FormItem>
-                    </If>
-                    {i !== validators.length - 1 ? <Section stylesheet={[classnames('line')]} /> : null}
-                  </>
+                  <FormItem stylesheet={[classnames('form-item--rich')]}>
+                    <RichPropEditor
+                      label={editor.title + '(' + editor.key + ')'}
+                      types={editor.types}
+                      data={this.state.form[editor.key]}
+                      onChange={data => handleChangeForm({ [editor.key]: data })}
+                      options={editor.options}
+                      disabled={editor.disabled}
+                    />
+                  </FormItem>
                 )
-              }}
-            />
-          </FormItem>
+              }} />
+            </If>
+          } />
           {
             customKeys.map((key) => {
               const custom = customs[key]

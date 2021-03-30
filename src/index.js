@@ -32,8 +32,11 @@ export class FormastDesigner {
       return this
     }
 
+    const { json: _, attachTopBar, ...config } = this.config
+
     update(this.el, App, {
-      config: this.config,
+      config,
+      attachTopBar,
       onSave: () => this.emit('save', this.getJSON()),
       onReset: () => {
         this.emit('reset')

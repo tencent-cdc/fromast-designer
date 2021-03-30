@@ -29,6 +29,13 @@ const layout = {
 const cacheJson = sessionStorage.getItem('__JSON__')
 const json = cacheJson ? JSON.parse(cacheJson) : {}
 const editor = createFormastDesigner('#form-editor', {
+  attachTopBar(el) {
+    el.innerHTML = `
+      <div class="nav">
+        <a href="https://techmap.woa.com/project/21993" target="_blank">Formast Designer</a>
+      </div>
+    `
+  },
   json,
   layout,
 })

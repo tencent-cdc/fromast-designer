@@ -1,4 +1,4 @@
-import { React, Component, Section, If } from 'nautil'
+import { React, Component, Section, If, createRef } from 'nautil'
 import { Button } from '../components/button/button.jsx'
 import { classnames, globalModelScope } from '../utils'
 import { ModelDesigner } from './model-designer.jsx'
@@ -12,6 +12,8 @@ class App extends Component {
   state = {
     activeTopTab: 'layout',
   }
+
+  topBar = createRef()
 
   onInit() {
     // 进来以后实例化，在render中好用
@@ -39,7 +41,7 @@ class App extends Component {
   }
 
   onMounted() {
-    const { config } = this.props
+    const { config, attachTopBar } = this.props
     const activeTopTab = decideby(() => {
       if (!config.disableLayout) {
         return 'layout'
@@ -52,21 +54,28 @@ class App extends Component {
       }
     })
     this.setState({ activeTopTab })
+
+    if (attachTopBar) {
+      attachTopBar(this.topBar.current)
+    }
   }
 
   render() {
-    const { config = {}, onSave, onReset, onExport, json = {}, onImport } = this.props
+    const { config = {}, onSave, onReset, onExport, json = {}, onImport, attachTopBar } = this.props
     const { activeTopTab } = this.state
     const setActiveTopTab = (activeTopTab) => this.setState({ activeTopTab })
-    const { model, components = {}, layout = {} } = json
+    const { model } = json
     const disabled = [config.disableModel, config.disableComponents, config.disableLayout].filter(item => !!item).length > 1
     const hasNoBtns = [config.disableSave, config.disableReset, config.disableImport, config.disableExport].filter(item => !!item).length === 4
 
     return (
       <DndProvider backend={HTML5Backend}>
         <Section stylesheet={[classnames('app')]}>
-          <If is={!disabled || !hasNoBtns}>
+          <If is={!disabled || !hasNoBtns || !attachTopBar}>
             <Section stylesheet={[classnames('app__top-bar')]}>
+              <If is={!!attachTopBar}>
+                <div className={classnames('app_top-bar-attch')} ref={this.topBar}></div>
+              </If>
               <If is={!disabled}>
                 {!config.disableModel ? <Section stylesheet={[classnames('app__top-tab', activeTopTab === 'model' ? 'app__top-tab--active' : null)]} onHit={() => setActiveTopTab('model')}>模型设计</Section> : null}
                 {!config.disableComponents ? <Section stylesheet={[classnames('app__top-tab', activeTopTab === 'components' ? 'app__top-tab--active' : null)]} onHit={() => setActiveTopTab('components')}>组件设计</Section> : null}

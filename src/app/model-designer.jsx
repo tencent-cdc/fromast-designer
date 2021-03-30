@@ -83,7 +83,7 @@ export class ModelDesigner extends Component {
   }
 
   Render() {
-    const { modelJSON = {}, onModelJSONChange } = this.props
+    const { modelJSON = {}, onModelJSONChange, modelConfig = {} } = this.props
     const { activeCatItem, showSubmodelModal, activeSubmodelStep, submodel } = this.state
     const setActiveCatItem = (activeCatItem) => this.setState({ activeCatItem })
 
@@ -109,6 +109,7 @@ export class ModelDesigner extends Component {
                 const nextModelJSON = { ...modelJSON, schema }
                 handleModelJSONChange(nextModelJSON)
               }}
+              config={modelConfig.schema}
               CreateSubmodel={this.CreateSubmodel}
               EditSubmodel={this.EditSubmodel}
             />

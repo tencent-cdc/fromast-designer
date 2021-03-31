@@ -165,3 +165,56 @@ export function getExp(str, scopex = new ScopeX({})) {
   }
   catch (e) {}
 }
+
+export function genFieldsOptions(modelJSON, collapsed) {
+  const gen = (modelJSON, parentText, parentPath) => {
+    const { schema = {}, state = {} } = modelJSON
+    const schemaKeys = Object.keys(schema)
+    const stateKeys = Object.keys(state)
+
+    const options = []
+
+    schemaKeys.forEach((key) => {
+      if (/^\|.*?\|$/.test(key)) {
+        return
+      }
+
+      const isSubModel = /^<.*?>$/.test(key)
+      if (isSubModel) {
+        const name = key.substring(1, key.length - 1)
+        const fac = schema[`|${name}|`]
+        const label = fac ? fac.label : name
+        const text = parentText ? `${parentText}.${label}` : label
+        const value = parentPath ? `${parentPath}.${name}` : name
+
+        const submodel = schema[key]
+        const children = isArray(submodel) ? gen(submodel[0], `${text}[i]`, `${value}[i]`) : gen(submodel, text, value)
+
+        const option = { text, value, children }
+        options.push(option)
+
+        // 摊平
+        if (!collapsed) {
+          options.push(...children)
+        }
+      }
+      else {
+        const meta = schema[key]
+        const label = meta.label || key
+        const text = parentText ? `${parentText}.${label}` : label
+        const value = parentPath ? `${parentPath}.${key}` : key
+        const option = { text, value }
+        options.push(option)
+      }
+    })
+
+    stateKeys.forEach((key) => {
+      const value = parentPath ? `${parentPath}.${key}` : key
+      const option = { text: value, value }
+      options.push(option)
+    })
+
+    return options
+  }
+  return gen(modelJSON)
+}

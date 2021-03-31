@@ -2,7 +2,7 @@ import { React, useRef, useEffect, useState, If, Each, useCallback } from 'nauti
 import { classnames } from '../../utils'
 
 export function Prompt(props) {
-  const { preload, children } = props
+  const { options, type, children, onSelect } = props
   const ref = useRef()
   const focused = useRef()
   const [style, setStyle] = useState(null)
@@ -14,7 +14,8 @@ export function Prompt(props) {
 
     const handleFocus = (e) => {
       const input = e.target
-      if (input.nodeName !== 'TEXTAREA') {
+
+      if (input.nodeName.toLowerCase() !== type) {
         return
       }
 
@@ -46,24 +47,18 @@ export function Prompt(props) {
     }
   }, [])
 
-  const handleSelect = useCallback((value) => {
-    if (!focused.current) {
-      return
-    }
-
-    const text = value + ''
-
-    focused.current.setRangeText(text, focused.current.selectionStart, focused.current.selectionEnd, 'end')
+  const handleSelect = useCallback((e, item) => {
+    onSelect(e, item, focused)
   })
 
   return (
     <div ref={ref} className={classnames('prompt')}>
       {children}
 
-      <If is={!!style && !!preload} render={() =>
+      <If is={!!style && !!options} render={() =>
         <div className={classnames('prompt__list')} style={style || {}}>
-          <Each of={preload} render={(item) =>
-            <div className={classnames('prompt__item')} key={item.value} onMouseDown={() => handleSelect(item.value)}>{item.text}</div>
+          <Each of={options} render={(item) =>
+            <div className={classnames('prompt__item')} key={item.value} onMouseDown={(e) => handleSelect(e, item)}>{item.text}</div>
           } />
         </div>
       } />

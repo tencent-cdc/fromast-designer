@@ -245,24 +245,38 @@ export class Monitor {
     const props = []
 
     const extract = (monitor) => {
-      const { source, props, children, bindField } = monitor
+      const { source, props: _props, children, bindField, importFields, importProps } = monitor
 
       if (bindField && !fields.includes(bindField)) {
         fields.push(bindField)
       }
+      if (importFields) {
+        importFields.forEach((field) => {
+          if (!fields.includes(field)) {
+            fields.push(field)
+          }
+        })
+      }
+      if (importProps) {
+        importProps.forEach((prop) => {
+          if (!props.includes(prop)) {
+            props.push(prop)
+          }
+        })
+      }
 
       const { id, fromRuntimeToJSON } = source
       const attrs = {}
-      each(props, (data, key) => {
+      each(_props, (data, key) => {
         const { type, params, value } = data
-        if (type === 0) {
-          attrs[key] = value
-        }
-        else if (type === 1) {
+        if (type === VALUE_TYPES.EXP) {
           attrs[key] = `{ ${value} }`
         }
-        else if (type === 2) {
+        else if (type === VALUE_TYPES.FN) {
           attrs[`${key}(${params})`] = `{ ${value} }`
+        }
+        else {
+          attrs[key] = value
         }
       })
 
@@ -284,7 +298,7 @@ export class Monitor {
 
     return {
       fields,
-      props, // TODO
+      props,
       'render!': jsx,
     }
   }

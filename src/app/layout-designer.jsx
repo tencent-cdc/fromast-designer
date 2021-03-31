@@ -1,4 +1,4 @@
-import { React, Component, Section, Text, If, Else, Switch, Case, ifexist, Store } from 'nautil'
+import { React, Component, Section, Text, If, Else, ElseIf, Switch, Case, ifexist, Store } from 'nautil'
 import { render, unmount } from 'nautil/dom'
 import { classnames, getConfig } from '../utils'
 import { Form, FormItem, Label, Input, Textarea, Select, Switcher } from '../components/form/form.jsx'
@@ -10,7 +10,7 @@ import { AutoModal } from '../components/modal/modal.jsx'
 import { Tabs } from '../components/tabs/tabs.jsx'
 import { Prompt } from '../components/prompt/prompt.jsx'
 import { COMPONENT_TYPES } from '../config/constants.js'
-import { globalModelScope } from '../utils'
+import { globalModelScope, genFieldsOptions } from '../utils'
 
 export class LayoutDesigner extends Component {
   static props = {
@@ -22,8 +22,8 @@ export class LayoutDesigner extends Component {
 
   state = {
     bindField: '',
-    importFields: [],
-    importProps: [],
+    importFields: '',
+    importProps: '',
     activeSetting: 0,
     // 保存配置时使用
     top: null,
@@ -138,6 +138,7 @@ export class LayoutDesigner extends Component {
     this.setState({ bindField: value }, () => {
       const selectedMonitor = this.store.getState()
       const { fromMetaToProps } = selectedMonitor.source
+
       const schema = this.props.json?.model?.schema || {}
       const meta = schema[value]
 
@@ -152,6 +153,17 @@ export class LayoutDesigner extends Component {
     })
   }
 
+  handleChangeImport = (type, value) => {
+    const key = 'import' + type[0].toUpperCase() + type.substr(1)
+    this.setState({ [key]: value }, () => {
+      const selectedMonitor = this.store.getState()
+      selectedMonitor[key] = value.split(',').filter(item => !!item)
+      this.update()
+
+      this.handleSaveSettings()
+    })
+  }
+
   render() {
     const { activeSetting, bindField, importFields, importProps } = this.state
     const selectedMonitor = this.store.getState()
@@ -159,13 +171,7 @@ export class LayoutDesigner extends Component {
     const { json = {}, layoutConfig, useComponents } = this.props
     const { model = {}, components = {}, layout = {} } = json
 
-    const fields = decideby(() => {
-      if (!model.schema) {
-        return []
-      }
-      const keys = Object.keys(model.schema)
-      return keys.map((key) => ({ text: model.schema[key].label, value: key }))
-    })
+    const fieldsOptions = genFieldsOptions(model)
 
     const componentsConfig = useComponents ? this.getComponentsConfig(components) : {}
     const sourceConfig = getConfig(componentsConfig, getConfig(layoutConfig))
@@ -209,9 +215,35 @@ export class LayoutDesigner extends Component {
                         <If is={selectedMonitor.source.type === COMPONENT_TYPES.ATOM} render={() =>
                           <FormItem>
                             <Label>绑定字段</Label>
-                            <Select options={fields} value={bindField} onChange={(e) => this.handleBindField(e.target.value)} placeholder="请选择字段"></Select>
+                            <Select options={fieldsOptions} value={bindField} onChange={(e) => this.handleBindField(e.target.value)} placeholder="请选择字段"></Select>
                           </FormItem>
                         }>
+                          <ElseIf is={selectedMonitor.source.type === COMPONENT_TYPES.VIEW} render={() => {
+                            return (
+                              <>
+                              <FormItem>
+                                  <Label>绑定字段</Label>
+                                  <Prompt type="input" options={fieldsOptions} onSelect={(e, item, focused) => {
+                                    const items = importFields.split(',').filter(item => !!item)
+                                    const { value } = item
+
+                                    if (items.includes(value)) {
+                                      return
+                                    }
+
+                                    items.push(value)
+                                    this.handleChangeImport('fields', items.join(','))
+                                  }}>
+                                    <Input value={importFields} onChange={(e) => this.handleChangeImport('fields', e.target.value)} />
+                                  </Prompt>
+                                </FormItem>
+                                <FormItem>
+                                  <Label>绑定Props</Label>
+                                  <Input value={importProps} onChange={(e) => this.handleChangeImport('props', e.target.value)} />
+                                </FormItem>
+                              </>
+                            )
+                          }} />
                         </If>
                       </Form>
                     } />

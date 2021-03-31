@@ -24,19 +24,22 @@ class App extends Component {
 
   handleModelJSONChange = (model) => {
     const { json = {}, onJSONChange } = this.props
-    const next = { ...json, model }
+    const { components, layout } = json
+    const next = { model, components, layout }
     onJSONChange(next)
   }
 
   handleComponentsChange = (components) => {
     const { json = {}, onJSONChange } = this.props
-    const next = { ...json, components }
+    const { model, layout } = json
+    const next = { model, components, layout }
     onJSONChange(next)
   }
 
   handleLayoutChange = (layout) => {
     const { json = {}, onJSONChange } = this.props
-    const next = { ...json, layout }
+    const { components, model } = json
+    const next = { model, components, layout }
     onJSONChange(next)
   }
 

@@ -164,7 +164,7 @@ export const FormGroupConfig = {
   title: '组',
   icon: 'BsLayers',
 
-  allows: ['FormItem'],
+  allows: ['FormItem', 'FormGroup'], // 组可以再嵌套组
 
   props: [
     {

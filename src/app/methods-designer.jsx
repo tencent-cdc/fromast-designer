@@ -102,7 +102,7 @@ export class MethodsDesigner extends Component {
           <Button primary onHit={this.handleAddMethod}>添加新方法</Button>
         </Section>
 
-        <Modal isShow={isShow} onSubmit={this.handleSubmitMehod} onCancel={this.handleCancelMehod} onClose={this.handleCancelMehod}>
+        <Modal isShow={isShow} onSubmit={this.handleSubmitMehod} onCancel={this.handleCancelMehod} onClose={this.handleCancelMehod} title="添加新方法">
           <Form>
             <FormItem>
               <Label>方法名</Label>

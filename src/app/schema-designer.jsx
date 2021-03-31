@@ -46,7 +46,7 @@ export class SchemaDesigner extends Component {
 
   Render() {
     const { schemaJSON = {}, CreateSubmodel, config } = this.props
-    const fields = Object.keys(schemaJSON)
+    const fields = Object.keys(schemaJSON).filter(item => !/^\|.*?\|$/.test(item))
 
     const popup = usePopup()
 
@@ -109,9 +109,12 @@ export class SchemaDesigner extends Component {
       <>
         <Section stylesheet={[classnames('main')]}>
           {fields.map((field) => {
+            const isSubModel = /^<.*?>$/.test(field)
+            const key = isSubModel ? field.substring(1, field.length - 1) : field
+            const meta = isSubModel ? schemaJSON[`|${key}|`] || {} : schemaJSON[field]
             return (
               <Section stylesheet={[classnames('schema-designer__field')]} key={field}>
-                <Section stylesheet={[classnames('schema-designer__field-label')]}>{field + (schemaJSON[field].label ? '(' + schemaJSON[field].label + ')' : '')}</Section>
+                <Section stylesheet={[classnames('schema-designer__field-label')]}>{field + (meta.label ? '(' + meta.label + ')' : '')}</Section>
                 <Button primary onHit={() => this.handleEditField(field)}>编辑</Button>
                 <Confirm
                   content="确定要删除该字段吗？"

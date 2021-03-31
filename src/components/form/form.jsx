@@ -27,8 +27,9 @@ export const Textarea = NTextarea.extend(props => {
     stylesheet: [
       classnames('textarea'),
       props.width ? { width: props.width, flexGrow: 'unset' } : null,
+      props.minHeight ? { minHeight: props.minHeight } : null,
     ],
-    deprecated: ['width'],
+    deprecated: ['width', 'minHeight'],
   }
 })
 

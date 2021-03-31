@@ -1,10 +1,10 @@
 import { React, Component, Section, Switch, Case, nonable, produce } from 'nautil'
-import { classnames, globalModelScope } from '../utils'
+import { classnames, globalModelScope, isExp, getExp } from '../utils'
 import { SchemaDesigner } from './schema-designer.jsx'
 import { StateDesigner } from './state-designer.jsx'
 import { MethodsDesigner } from './methods-designer.jsx'
 import { Modal } from '../components/modal/modal.jsx'
-import { Form, FormItem, Label, Input, Select } from '../components/form/form.jsx'
+import { Form, FormItem, Label, Input, Select, Textarea } from '../components/form/form.jsx'
 import { isArray } from 'ts-fns'
 import { Popup } from '../libs/popup'
 
@@ -13,6 +13,7 @@ const defaultState = {
   submodel: {
     field: '',
     isList: 0,
+    advancedSettings: '',
     json: {},
   },
   activeSubmodelStep: 0,
@@ -41,14 +42,18 @@ export class ModelDesigner extends Component {
   }
 
   EditSubmodel = (field) => {
-    const submodel = this.props.modelJSON.schema[field]
+    const key = field.substring(1, field.length - 1)
+    const schema = this.props.modelJSON.schema
+    const submodel = schema[field]
+    const advanced = schema[`|${key}|`]
     const isList = isArray(submodel) ? 1 : 0
     this.setState({
       showSubmodelModal: true,
       submodel: {
-        field: field.substring(1, field.length - 1),
+        field: key,
         json: isList ? submodel[0] : submodel,
         isList,
+        advancedSettings: advanced ? JSON.stringify(advanced, null, 4) : '',
       },
       editingSubmodel: field,
     })
@@ -61,16 +66,26 @@ export class ModelDesigner extends Component {
       if (!submodel.field) {
         return Popup.toast('必须填写字段名')
       }
+
+      if (submodel.advancedSettings && !(/^\{[\s\S]+\}$/.test(submodel.advancedSettings) && isExp(submodel.advancedSettings))) {
+        return Popup.toast('高级配置仅支持输入对象表达式')
+      }
       this.update(state => state.activeSubmodelStep ++)
     }
     else {
-      const { field, json, isList } = submodel
-      const fieldKey = `<${field}>`
+      const { field, json, isList, advancedSettings } = submodel
       const next = produce(modelJSON, model => {
         model.schema = model.schema || {}
+
+        const fieldKey = `<${field}>`
         model.schema[fieldKey] = isList ? [json] : json
         if (editingSubmodel && editingSubmodel !== fieldKey) {
           delete model.schema[editingSubmodel]
+        }
+
+        if (advancedSettings) {
+          const fieldFac = `|${field}|`
+          model.schema[fieldFac] = getExp(advancedSettings)
         }
       })
       onModelJSONChange(next)
@@ -80,6 +95,11 @@ export class ModelDesigner extends Component {
 
   handleCancelSubmodel = () => {
     this.setState(defaultState)
+  }
+
+  handleChangeAdvancedSettings = (e) => {
+    const next = e.target.value
+    this.update(state => state.submodel.advancedSettings = next)
   }
 
   Render() {
@@ -151,6 +171,10 @@ export class ModelDesigner extends Component {
                 <FormItem>
                   <Label>是否列表</Label>
                   <Select options={isListOptions} value={submodel.isList} onChange={e => this.update(state => state.submodel.isList = e.target.value)} />
+                </FormItem>
+                <FormItem>
+                  <Label>高级配置</Label>
+                  <Textarea value={submodel.advancedSettings} onChange={this.handleChangeAdvancedSettings} minHeight={120} />
                 </FormItem>
               </Form>
             </Case>

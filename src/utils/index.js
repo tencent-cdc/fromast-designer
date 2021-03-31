@@ -1,6 +1,7 @@
 import styles from '../styles/index.less'
 import { isArray, getObjectHash, isString, compute_, isUndefined } from 'ts-fns'
 import { generateModel } from '@tencent/formast'
+import ScopeX from 'scopex'
 
 export function createClassNames(config = {}) {
   const { namespace, module: cssModule } = config
@@ -131,3 +132,36 @@ export const getConfig = compute_(function(config = {}, defaultConfig = {}) {
     groups,
   }
 })
+
+// 判断是否为表达式
+export function isExp(str, scopex = new ScopeX({})) {
+  try {
+    try {
+      JSON.parse(str)
+      return true
+    }
+    catch (e) {
+      try {
+        scopex.parse(str)
+        return true
+      }
+      catch (e) {}
+    }
+  }
+  catch (e) {}
+  return false
+}
+export function getExp(str, scopex = new ScopeX({})) {
+  try {
+    try {
+      return JSON.parse(str)
+    }
+    catch (e) {
+      try {
+        return scopex.parse(str)
+      }
+      catch (e) {}
+    }
+  }
+  catch (e) {}
+}

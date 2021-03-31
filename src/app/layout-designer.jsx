@@ -70,13 +70,18 @@ export class LayoutDesigner extends Component {
     }
   }
   handleSelect = (selectedMonitor) => {
-    const { bindField, source } = selectedMonitor
-    this.setState({ activeSetting: source.type === COMPONENT_TYPES.ATOM ? 1 : 0, bindField })
+    const { bindField = '', importFields = [], importProps = [], source } = selectedMonitor
+    this.setState({
+      activeSetting: source.type === COMPONENT_TYPES.ATOM ? 1 : 0,
+      bindField,
+      importFields: importFields.join(','),
+      importProps: importProps.join(','),
+    })
     this.store.dispatch(selectedMonitor)
   }
 
   parseExp = (monitor) => (exp, locals) => {
-    const { bindField } = monitor
+    const { bindField, importFields } = monitor
 
     const scope = {}
     const model = globalModelScope.get()
@@ -84,8 +89,11 @@ export class LayoutDesigner extends Component {
     if (bindField) {
       scope[bindField] = model.$views[bindField]
     }
-
-    // TODO 其他类型
+    if (importFields) {
+      importFields.forEach((key) => {
+        scope[key] = key in model.$views ? model.$views[key] : model[key]
+      })
+    }
 
     if (locals) {
       Object.assign(scope, locals)

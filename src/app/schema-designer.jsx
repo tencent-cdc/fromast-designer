@@ -367,14 +367,16 @@ class MetaForm extends Component {
     const { data } = this.props
     const editors = this.genEditors()
     const form = {}
+
     editors.forEach((editor) => {
-      const { key, types, value } = editor
+      const { key, types, value, params = '' } = editor
       if (key === 'validators') {
         return
       }
       const type = types ? types[0] : 0
       form[key] = {
         type,
+        params,
         value,
       }
     })

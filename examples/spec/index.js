@@ -1,8 +1,7 @@
-import './styles/formast.less'
-
 import { createFormastDesigner } from '../../src/index.js'
-import { InputConfig, TextareaConfig, SelectConfig, FormGroupConfig, FormItemConfig } from '../../src/config/components.jsx' // 内置的例子
+import { InputConfig, TextareaConfig, SelectConfig, FormGroupConfig, FormItemConfig, RadioConfig, CheckboxConfig } from '../../src/config/components.jsx' // 内置的例子
 import { Popup } from '../../src/libs/popup.js'
+import { SchemaAttributes } from '../../src/config/model.js'
 
 const layout = {
   groups: [
@@ -21,9 +20,22 @@ const layout = {
         InputConfig,
         TextareaConfig,
         SelectConfig,
+        RadioConfig,
+        CheckboxConfig,
       ],
     },
   ],
+}
+const model = {
+  schema: {
+    attributes: SchemaAttributes,
+    policies: {
+      aa: {
+        remove: false,
+        rename: false,
+      },
+    },
+  },
 }
 
 const cacheJson = sessionStorage.getItem('__JSON__')
@@ -38,6 +50,7 @@ const editor = createFormastDesigner('#form-editor', {
   },
   json,
   layout,
+  model,
 })
 
 editor.on('save', (json) => {

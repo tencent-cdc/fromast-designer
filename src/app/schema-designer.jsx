@@ -1,7 +1,13 @@
-import { React, Component, useState, useRef, Section, useCallback, produce, useEffect, If, Validator, Each, ElseIf, Else, TySheMo } from 'nautil'
+import {
+  React, Component,
+  useState, useRef, useCallback,
+  Section, If, Each, Else,
+  Validator, ifexist, nonable,
+  produce,
+} from 'nautil'
 import { isEmpty, each, isUndefined, isString } from 'ts-fns'
 import { Button } from '../components/button/button.jsx'
-import { Modal, AutoModal } from '../components/modal/modal.jsx'
+import { Modal } from '../components/modal/modal.jsx'
 import { Form, FormItem, Label, Input, FormLoop } from '../components/form/form.jsx'
 import { classnames, parseKey } from '../utils'
 import { usePopup } from '../hooks/popup.js'
@@ -10,8 +16,15 @@ import { Confirm } from '../components/confirm/confirm.jsx'
 import { RichPropEditor } from '../components/rich-prop-editor/rich-prop-editor.jsx'
 import { VALUE_TYPES } from '../config/constants.js'
 import { Popup } from '../libs/popup.js'
+import { SchemaConfigType } from '../types/model.type.js'
 
 export class SchemaDesigner extends Component {
+  static props = {
+    schemaJSON: nonable(Object),
+    config: ifexist(SchemaConfigType),
+  }
+  static propsCheckAsync = true
+
   state = {
     isShow: false,
     editData: null,
@@ -45,7 +58,7 @@ export class SchemaDesigner extends Component {
   }
 
   Render() {
-    const { schemaJSON = {}, CreateSubmodel, config } = this.props
+    const { schemaJSON = {}, CreateSubmodel, config = {} } = this.props
     const fields = Object.keys(schemaJSON).filter(item => !/^\|.*?\|$/.test(item))
 
     const popup = usePopup()
@@ -105,6 +118,8 @@ export class SchemaDesigner extends Component {
       this.setState({ isShow: false, editData: null })
     }, [])
 
+    const { policies = {} } = config
+
     return (
       <>
         <Section stylesheet={[classnames('main')]}>
@@ -115,12 +130,16 @@ export class SchemaDesigner extends Component {
             return (
               <Section stylesheet={[classnames('schema-designer__field')]} key={field}>
                 <Section stylesheet={[classnames('schema-designer__field-label')]}>{field + (meta.label ? '(' + meta.label + ')' : '')}</Section>
-                <Button primary onHit={() => this.handleEditField(field)}>编辑</Button>
-                <Confirm
-                  content="确定要删除该字段吗？"
-                  onSubmit={() => this.handleRemoveField(field)}
-                  trigger={show => <Button secondary onHit={show}>删除</Button>}
-                />
+                <If is={!(key in policies) || typeof policies[key].edit === 'undefined' || policies[key].edit === true}>
+                  <Button primary onHit={() => this.handleEditField(field)}>编辑</Button>
+                </If>
+                <If is={!(key in policies) || typeof policies[key].remove === 'undefined' || policies[key].remove === true}>
+                  <Confirm
+                    content="确定要删除该字段吗？"
+                    onSubmit={() => this.handleRemoveField(field)}
+                    trigger={show => <Button secondary onHit={show}>删除</Button>}
+                  />
+                </If>
               </Section>
             )
           })}
@@ -168,39 +187,6 @@ class MetaForm extends Component {
     )
   }
 
-  static defaultConfig = [
-    {
-      key: 'label',
-      title: '显示名',
-      types: [VALUE_TYPES.STR],
-      value: '',
-    },
-    {
-      key: 'default',
-      title: '默认值',
-      types: [VALUE_TYPES.STR, VALUE_TYPES.EXP, VALUE_TYPES.FN],
-      value: '',
-    },
-    {
-      key: 'type',
-      title: '数据类型',
-      types: [VALUE_TYPES.ENUM, VALUE_TYPES.STR, VALUE_TYPES.EXP],
-      options: Object.keys(TySheMo.Parser.defaultTypes).map(value => ({ text: value, value })),
-      value: 'string',
-    },
-    {
-      key: 'required',
-      title: '是否必填',
-      types: [VALUE_TYPES.BOOL, VALUE_TYPES.EXP],
-      value: false,
-    },
-    {
-      key: 'validators',
-      title: '校验器',
-      value: [],
-    }
-  ]
-
   state = {
     field: '',
     validators: [],
@@ -209,12 +195,9 @@ class MetaForm extends Component {
 
   genEditors() {
     const { config = {}, data } = this.props
-    const { defaultConfig } = MetaForm
     const { attributes = [], rules = [] } = config
 
-    const mergedEditors = [
-      ...defaultConfig,
-    ]
+    const mergedEditors = []
 
     attributes.forEach((item) => {
       const existing = mergedEditors.find(one => one.key === item.key)
@@ -434,7 +417,7 @@ class MetaForm extends Component {
   }
 
   render() {
-    const { aside, width, title, isShow, onClose, onCancel } = this.props
+    const { aside, width, title, isShow, onClose, onCancel, config } = this.props
     const { field, validators, form } = this.state
 
     if (isEmpty(form)) {
@@ -504,13 +487,14 @@ class MetaForm extends Component {
     const keys = editors.map(item => item.key)
     const formKeys = Object.keys(form)
     const customKeys = formKeys.filter(key => !keys.includes(key))
+    const { policies = {} } = config
 
     return (
       <Modal isShow={isShow} width={width} title={title} onSubmit={this.handleSubmit} onCancel={onCancel} onClose={onClose} className={classnames('schema-designer__modal')}>
         <Form aside={aside}>
           <FormItem>
             <Label>字段名</Label>
-            <Input value={field} onChange={(e) => handleChangeState(state => state.field = e.target.value)} />
+            <Input value={field} onChange={(e) => handleChangeState(state => state.field = e.target.value)} disabled={(policies[field] && !policies[field].rename)} />
           </FormItem>
           <Each of={editors} render={(editor) =>
             <If key={editor.key} is={editor.key === 'validators'} render={() => {
@@ -548,7 +532,7 @@ class MetaForm extends Component {
                 return (
                   <FormItem stylesheet={[classnames('form-item--rich')]}>
                     <RichPropEditor
-                      label={editor.title + '(' + editor.key + ')'}
+                      label={(editor.title || '') + '(' + editor.key + ')'}
                       types={editor.types}
                       data={this.state.form[editor.key]}
                       onChange={data => handleChangeForm({ [editor.key]: data })}

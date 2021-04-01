@@ -1,7 +1,7 @@
 import { React } from 'nautil'
 import { unmount, render } from 'nautil/dom'
 import { VALUE_TYPES, COMPONENT_TYPES } from './constants.js'
-import { Input, FormItem, FormGroup } from '@tencent/formast/react-components'
+import { Input, Textarea, FormItem, FormGroup, Radio, Select, Checkbox } from '@tencent/formast/react-components'
 
 export const InputConfig = {
   id: 'Input',
@@ -10,6 +10,7 @@ export const InputConfig = {
   title: '输入框',
   icon: 'BsPhoneLandscape',
 
+  tag: 'atom',
   needs: ['FormItem'],
 
   props: [
@@ -46,6 +47,11 @@ export const InputConfig = {
       key: 'placeholder',
       types: [VALUE_TYPES.STR, VALUE_TYPES.EXP],
     },
+    {
+      key: 'after',
+      title: '末尾',
+      types: [VALUE_TYPES.STR, VALUE_TYPES.EXP],
+    },
   ],
 
   fromMetaToProps(field, meta, monitor) {
@@ -76,6 +82,7 @@ export const TextareaConfig = {
   title: '多行文本',
   icon: 'BsCardText',
 
+  tag: 'atom',
   needs: ['FormItem'],
 
   props: [
@@ -97,7 +104,7 @@ export const TextareaConfig = {
   mount(el, monitor) {
     const props = monitor.getComputedProps()
     const { placeholder } = props
-    render(el, <textarea placeholder={placeholder} />)
+    render(el, <Textarea placeholder={placeholder} />)
   },
   update(el, monitor) {
     TextareaConfig.mount(el, monitor)
@@ -114,6 +121,7 @@ export const SelectConfig = {
   title: '下拉',
   icon: 'BsListCheck',
 
+  tag: 'atom',
   needs: ['FormItem'],
 
   props: [
@@ -143,14 +151,102 @@ export const SelectConfig = {
     ]
     const { placeholder } = props
     const options = props.options && props.options.length ? props.options : defaultOptions
-    render(el,
-      <select placeholder={placeholder}>
-        {options.map((option) => <option key={option.value} value={option.value}>{option.text}</option>)}
-      </select>
-    )
+    render(el, <Select options={options} placeholder={placeholder} />)
   },
   update(el, monitor) {
     SelectConfig.mount(el, monitor)
+  },
+  unmount(el) {
+    unmount(el)
+  },
+}
+
+export const RadioConfig = {
+  id: 'Radio',
+  type: COMPONENT_TYPES.ATOM,
+
+  title: '单选组',
+  icon: 'BsCheckCircle',
+
+  tag: 'atom',
+  needs: ['FormItem'],
+
+  props: [
+    {
+      key: 'options',
+      title: '选项列表',
+      types: [VALUE_TYPES.EXP],
+      defender: value => Array.isArray(value) && !value.some(item => !('text' in item && 'value' in item)) ? value : [],
+    },
+    {
+      key: 'value',
+      title: '值',
+      types: [VALUE_TYPES.STR, VALUE_TYPES.EXP],
+    },
+    {
+      key: 'onChange',
+      types: [VALUE_TYPES.FN],
+    },
+  ],
+
+  mount(el, monitor) {
+    const props = monitor.getComputedProps()
+    const defaultOptions = [
+      { text: '选项一', value: 1 },
+      { text: '选项二', value: 2 },
+      { text: '选项三', value: 3 },
+    ]
+    const options = props.options && props.options.length ? props.options : defaultOptions
+    render(el, <Radio options={options} />)
+  },
+  update(el, monitor) {
+    RadioConfig.mount(el, monitor)
+  },
+  unmount(el) {
+    unmount(el)
+  },
+}
+
+export const CheckboxConfig = {
+  id: 'Checkbox',
+  type: COMPONENT_TYPES.ATOM,
+
+  title: '多选组',
+  icon: 'BsCheckBox',
+
+  tag: 'atom',
+  needs: ['FormItem'],
+
+  props: [
+    {
+      key: 'options',
+      title: '选项列表',
+      types: [VALUE_TYPES.EXP],
+      defender: value => Array.isArray(value) && !value.some(item => !('text' in item && 'value' in item)) ? value : [],
+    },
+    {
+      key: 'value',
+      title: '值',
+      types: [VALUE_TYPES.STR, VALUE_TYPES.EXP],
+    },
+    {
+      key: 'onChange',
+      types: [VALUE_TYPES.FN],
+    },
+  ],
+
+  mount(el, monitor) {
+    const props = monitor.getComputedProps()
+    const defaultOptions = [
+      { text: '选项一', value: 1 },
+      { text: '选项二', value: 2 },
+      { text: '选项三', value: 3 },
+    ]
+    const options = props.options && props.options.length ? props.options : defaultOptions
+    render(el, <Checkbox options={options} />)
+  },
+  update(el, monitor) {
+    CheckboxConfig.mount(el, monitor)
   },
   unmount(el) {
     unmount(el)
@@ -203,7 +299,7 @@ export const FormItemConfig = {
   icon: 'BsTable',
   direction: 'h',
 
-  allows: ['Input', 'Textarea', 'Select'],
+  allows: ['tag:atom'],
 
   props: [
     {

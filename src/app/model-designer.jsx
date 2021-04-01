@@ -141,6 +141,7 @@ export class ModelDesigner extends Component {
                 const nextModelJSON = { ...modelJSON, state }
                 handleModelJSONChange(nextModelJSON)
               }}
+              config={modelConfig.state}
             />
           } />
           <Case is={2} break render={() =>

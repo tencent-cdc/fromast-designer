@@ -11,8 +11,11 @@ export const LayoutConfigType = new Dict({
           id: String,
           type: new Enum(Object.values(COMPONENT_TYPES)),
           sort: ifexist(Number),
+
           title: String,
           icon: ifexist(String),
+          description: ifexist(String),
+
           direction: ifexist('h'),
           props: ifexist([
             {

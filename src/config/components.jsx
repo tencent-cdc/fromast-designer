@@ -1,7 +1,10 @@
 import { React } from 'nautil'
 import { unmount, render } from 'nautil/dom'
 import { VALUE_TYPES, COMPONENT_TYPES } from './constants.js'
-import { Input, Textarea, FormItem, FormGroup, Radio, Select, Checkbox } from '@tencent/formast/react-components'
+import { Components } from '@tencent/formast/react-components'
+
+const { Input, Textarea, FormItem, FormGroup, Radio, Select, Checkbox, InputNumber } = Components
+
 
 export const InputConfig = {
   id: 'Input',
@@ -52,6 +55,31 @@ export const InputConfig = {
       title: '末尾',
       types: [VALUE_TYPES.STR, VALUE_TYPES.EXP],
     },
+    {
+      key: 'disabled',
+      title: '是否禁用',
+      types: [VALUE_TYPES.BOOL, VALUE_TYPES.EXP],
+      value: false,
+    },
+    {
+      key: 'readonly',
+      title: '是否只读',
+      types: [VALUE_TYPES.BOOL, VALUE_TYPES.EXP],
+      value: false,
+    },
+    {
+      key: 'hidden',
+      title: '是否隐藏',
+      types: [VALUE_TYPES.BOOL, VALUE_TYPES.EXP],
+      value: false,
+    },
+    {
+      key: 'highlight',
+      title: '是否高亮',
+      description: '多出一些样式，例如当出现错误时，边框处理成红色，可通过该功能实现',
+      types: [VALUE_TYPES.BOOL, VALUE_TYPES.EXP],
+      value: false,
+    },
   ],
 
   fromMetaToProps(field, meta, monitor) {
@@ -59,16 +87,71 @@ export const InputConfig = {
       value: `{ ${field}.value }`,
       'onChange(e)': `{ ${field}.value = e.target.value }`,
       placeholder: `{ ${field}.placeholder }`,
+      after: `{ ${field}.unit }`,
     }
   },
 
   mount(el, monitor) {
     const props = monitor.getComputedProps()
-    const { placeholder, type } = props
-    render(el, <Input type={type} placeholder={placeholder} />)
+    const { placeholder, type, after } = props
+    render(el, <Input type={type} placeholder={placeholder} after={after} />)
   },
   update(el, monitor) {
     InputConfig.mount(el, monitor)
+  },
+  unmount(el) {
+    unmount(el)
+  },
+}
+
+export const InputNumberConfig = {
+  id: 'InputNumber',
+  type: COMPONENT_TYPES.ATOM,
+
+  title: '数字',
+  icon: 'BsAspectRatio',
+
+  tag: 'atom',
+  needs: ['FormItem'],
+
+  props: [
+    {
+      key: 'value',
+      title: '值',
+      types: [VALUE_TYPES.STR, VALUE_TYPES.EXP],
+    },
+    {
+      key: 'onChange',
+      types: [VALUE_TYPES.FN],
+    },
+    {
+      key: 'placeholder',
+      types: [VALUE_TYPES.STR, VALUE_TYPES.EXP],
+    },
+    {
+      key: 'after',
+      title: '末尾',
+      types: [VALUE_TYPES.STR, VALUE_TYPES.EXP],
+    },
+  ],
+
+
+  fromMetaToProps(field, meta, monitor) {
+    return {
+      value: `{ ${field}.value }`,
+      'onChange(e)': `{ ${field}.value = e.target.value }`,
+      placeholder: `{ ${field}.placeholder }`,
+      after: `{ ${field}.unit }`,
+    }
+  },
+
+  mount(el, monitor) {
+    const props = monitor.getComputedProps()
+    const { placeholder, after } = props
+    render(el, <InputNumber placeholder={placeholder} after={after} />)
+  },
+  update(el, monitor) {
+    InputNumberConfig.mount(el, monitor)
   },
   unmount(el) {
     unmount(el)

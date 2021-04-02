@@ -215,13 +215,15 @@ export class Monitor {
     const extract = (monitor) => {
       const { source, props: _props, children, bindField, importFields, importProps } = monitor
 
-      if (bindField && !fields.includes(bindField)) {
-        fields.push(bindField)
+      const [bindRootField] = bindField.split(/\.\[/) // 只需要路径的最顶部
+      if (bindField && !fields.includes(bindRootField)) {
+        fields.push(bindRootField)
       }
       if (importFields) {
         importFields.forEach((field) => {
-          if (!fields.includes(field)) {
-            fields.push(field)
+          const [root] = field.split(/\.\[/) // 只需要路径的最顶部
+          if (!fields.includes(root)) {
+            fields.push(root)
           }
         })
       }

@@ -4,6 +4,7 @@ import { VALUE_TYPES } from '../config/constants.js'
 const AttributeConfigObj = {
   key: String, // attribute名
   title: ifexist(String), // 显示名
+  description: ifexist(String), // 简单的提示语
   types: ifexist(new List(Object.values(VALUE_TYPES))), // 支持的输入类型
   value: Any, // 默认值
   // 当 types 支持 VALUE_TYPES.ENUM 时，需要传入 options 表示下拉选项

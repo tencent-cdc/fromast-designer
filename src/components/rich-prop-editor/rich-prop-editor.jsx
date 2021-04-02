@@ -1,6 +1,8 @@
-import { React, produce } from 'nautil'
+import { React, produce, Text } from 'nautil'
 import { Label, Select, Input, Textarea, Switcher } from '../form/form.jsx'
 import { VALUE_TYPES } from '../../config/constants.js'
+import { BsFillQuestionCircleFill } from 'react-icons/bs'
+import { Popover } from '../../libs/popover.js'
 
 const attrTypes = [
   { value: VALUE_TYPES.STR, text: '纯文本' },
@@ -11,7 +13,7 @@ const attrTypes = [
 ]
 
 export function RichPropEditor(props) {
-  const { label, data, onChange, types, options } = props
+  const { label, data, onChange, types, options, description } = props
   const items = attrTypes.filter(item => types ? types.includes(item.value) : true)
 
   const handleChangeType = (e) => {
@@ -40,7 +42,10 @@ export function RichPropEditor(props) {
 
   return (
     <>
-      <Label>{label}</Label>
+      <Label>
+        <Text>{label}</Text>
+        {description ? <span onMouseEnter={e => Popover.show(e, description)} onMouseLeave={() => Popover.hide()}><BsFillQuestionCircleFill /></span> : null}
+      </Label>
       <Select width="90px" options={items} value={data.type} onChange={handleChangeType} disabled={data.disabled} />
       {data.type === VALUE_TYPES.STR ? <Input value={data.value} onChange={(e) => onChange(produce(data, data => { data.value = e.target.value }))} disabled={data.disabled} /> : null}
       {data.type === VALUE_TYPES.ENUM ? <Select options={options} value={data.value} onChange={(e) => onChange(produce(data, data => { data.value = e.target.value }))} disabled={data.disabled} /> : null}

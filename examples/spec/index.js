@@ -1,5 +1,5 @@
 import { createFormastDesigner } from '../../src/index.js'
-import { InputConfig, TextareaConfig, SelectConfig, FormGroupConfig, FormItemConfig, RadioConfig, CheckboxConfig } from '../../src/config/components.jsx' // 内置的例子
+import { InputConfig, TextareaConfig, SelectConfig, FormGroupConfig, FormItemConfig, RadioConfig, CheckboxConfig, InputNumberConfig } from '../../src/config/components.jsx' // 内置的例子
 import { Popup } from '../../src/libs/popup.js'
 import { SchemaAttributes } from '../../src/config/model.js'
 
@@ -18,6 +18,7 @@ const layout = {
       title: '原子素材',
       items: [
         InputConfig,
+        InputNumberConfig,
         TextareaConfig,
         SelectConfig,
         RadioConfig,

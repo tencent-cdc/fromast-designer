@@ -540,6 +540,7 @@ class MetaForm extends Component {
                       onChange={data => handleChangeForm({ [editor.key]: data })}
                       options={editor.options}
                       disabled={editor.disabled}
+                      description={editor.description}
                     />
                   </FormItem>
                 )

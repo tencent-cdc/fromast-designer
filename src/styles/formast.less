@@ -1,0 +1,80 @@
+.formast {
+  &__radio,
+  &__checkbox {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+  }
+
+  .no-wrap() {
+    white-space: nowrap;
+    word-break: keep-all;
+  }
+
+  &__radio__content,
+  &__checkbox__content {
+    .no-wrap()
+  }
+
+  &__form-group {
+    &__title {
+      font-size: 12px;
+      font-weight: bold;
+      padding: 5px 0;
+    }
+  }
+
+  &__form-item {
+    display: flex;
+    align-items: center;
+
+    &__label {
+      margin-right: 5px;
+      font-size: 14px;
+      .no-wrap();
+    }
+    &__content {
+      flex: 1;
+    }
+
+    textarea,
+    select {
+      background-color: #fff;
+      border: #dedede solid 1px;
+      padding: 5px;
+      width: 200px;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 40px;
+    }
+  }
+
+  &__input,
+  &__input-number {
+    background-color: #fff;
+    border: #dedede solid 1px;
+    padding: 5px;
+    display: inline-block;
+
+    input {
+      background-color: #fff;
+      border: 0;
+      width: 200px;
+    }
+  }
+
+
+  &__input--hidden,
+  &__textarea--hidden,
+  &__input-number--hidden,
+  &__select--hidden,
+  &__radio--hidden,
+  &__checkbox--hidden,
+  &__form-group--hidden,
+  &__form-item--hidden {
+    opacity: .5;
+  }
+}

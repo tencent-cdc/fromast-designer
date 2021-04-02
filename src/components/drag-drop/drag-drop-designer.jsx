@@ -1,51 +1,19 @@
-import { React, Component, Section, Text, createRef, Each, nonable, ifexist, List, Dict, Enum, Store } from 'nautil'
+import { React, Component, Section, Text, createRef, Each, nonable, ifexist, Store } from 'nautil'
 import { DropBox, DragBox } from './drag-drop.jsx'
 import { classnames, parseKey } from '../../utils'
 import { DndProvider } from 'react-dnd'
 import { HTML5Backend } from 'react-dnd-html5-backend'
 import { createRandomString, each } from 'ts-fns'
 import { Confirm } from '../confirm/confirm.jsx'
-import { VALUE_TYPES, COMPONENT_TYPES } from '../../config/constants.js'
+import { VALUE_TYPES } from '../../config/constants.js'
 import { isFunction, find, isArray } from 'ts-fns'
 import * as icons from '../icon'
 import { BsTrash, BsArrowsMove } from '../icon'
-
-export const ConfigType = new Dict({
-  groups: [
-    {
-      id: String,
-      title: String,
-      items: [
-        {
-          id: String,
-          type: new Enum(Object.values(COMPONENT_TYPES)),
-          sort: ifexist(Number),
-          title: String,
-          icon: ifexist(String),
-          direction: ifexist('h'),
-          props: ifexist([
-            {
-              key: String,
-              types: new List(Object.values(VALUE_TYPES)),
-              title: ifexist(String),
-              defender: ifexist(Function),
-            }
-          ]),
-          tag: ifexist(String),
-          needs: ifexist([String]),
-          allows: ifexist([String]),
-          mount: Function,
-          update: Function,
-          unmount: Function,
-        }
-      ]
-    }
-  ]
-})
+import { LayoutConfigType } from '../../types/layout.type.js'
 
 export class DragDesigner extends Component {
   static props = {
-    config: ConfigType,
+    config: LayoutConfigType,
   }
   static propsCheckAsync = true
 
@@ -247,13 +215,15 @@ export class Monitor {
     const extract = (monitor) => {
       const { source, props: _props, children, bindField, importFields, importProps } = monitor
 
-      if (bindField && !fields.includes(bindField)) {
-        fields.push(bindField)
+      const [bindRootField] = bindField.split(/\.\[/) // 只需要路径的最顶部
+      if (bindField && !fields.includes(bindRootField)) {
+        fields.push(bindRootField)
       }
       if (importFields) {
         importFields.forEach((field) => {
-          if (!fields.includes(field)) {
-            fields.push(field)
+          const [root] = field.split(/\.\[/) // 只需要路径的最顶部
+          if (!fields.includes(root)) {
+            fields.push(root)
           }
         })
       }
@@ -306,7 +276,7 @@ export class Monitor {
 
 export class DropDesigner extends Component {
   static props = {
-    config: ConfigType,
+    config: LayoutConfigType,
     elements: nonable(Array),
     source: ifexist(Object),
     type: ifexist(String),
@@ -435,13 +405,13 @@ export class DropDesigner extends Component {
   canDrop = (current) => {
     const { source, max, type } = this.props
     if (source && source.allows) {
-      return source.allows.includes(current.id) || (current.tag && source.allows.includes(current.tag))
+      return source.allows.includes(current.id) || (current.tag && source.allows.includes('tag:' + current.tag))
     }
     else if (current.needs && !type) {
       return current.needs.includes('!')
     }
     else if (current.needs) {
-      return source ? current.needs.includes(source.id) || (source.tag && current.needs.includes(source.tag)) : false
+      return source ? current.needs.includes(source.id) || (source.tag && current.needs.includes('tag:' + source.tag)) : false
     }
     else if (source && source.max&& !this.state.move) {
       return this.items.filter(item => !!item).length < source.max

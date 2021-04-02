@@ -8,8 +8,9 @@ export class StateDesigner extends Component {
   }
 
   onMounted() {
-    const { stateJSON = {} } = this.props
-    const json = JSON.stringify(stateJSON, null, 4)
+    const { stateJSON = {}, config = {} } = this.props
+    const state = { ...config, ...stateJSON }
+    const json = JSON.stringify(state, null, 4)
     this.setState({ json })
   }
 

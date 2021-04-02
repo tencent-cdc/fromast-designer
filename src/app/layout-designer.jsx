@@ -212,6 +212,7 @@ export class LayoutDesigner extends Component {
                                   selectedMonitor.props[item.key] = data
                                   this.update()
                                 }}
+                                description={item.description}
                               />
                             </FormItem>
                           )

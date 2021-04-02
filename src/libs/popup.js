@@ -10,7 +10,6 @@ export class Popup {
     this.timer = null
   }
 
-
   show(text) {
     const el = this.el
     el.innerHTML = `<div class="${classnames('popup-text')}">${text}</div>`

@@ -1,7 +1,10 @@
 import { React } from 'nautil'
 import { unmount, render } from 'nautil/dom'
 import { VALUE_TYPES, COMPONENT_TYPES } from './constants.js'
-import { Input, FormItem, FormGroup } from '@tencent/formast/react-components'
+import { Components } from '@tencent/formast/react-components'
+
+const { Input, Textarea, FormItem, FormGroup, Radio, Select, Checkbox, InputNumber } = Components
+
 
 export const InputConfig = {
   id: 'Input',
@@ -10,6 +13,7 @@ export const InputConfig = {
   title: '输入框',
   icon: 'BsPhoneLandscape',
 
+  tag: 'atom',
   needs: ['FormItem'],
 
   props: [
@@ -46,6 +50,36 @@ export const InputConfig = {
       key: 'placeholder',
       types: [VALUE_TYPES.STR, VALUE_TYPES.EXP],
     },
+    {
+      key: 'after',
+      title: '单位',
+      types: [VALUE_TYPES.STR, VALUE_TYPES.EXP],
+    },
+    {
+      key: 'disabled',
+      title: '是否禁用',
+      types: [VALUE_TYPES.BOOL, VALUE_TYPES.EXP],
+      value: false,
+    },
+    {
+      key: 'readonly',
+      title: '是否只读',
+      types: [VALUE_TYPES.BOOL, VALUE_TYPES.EXP],
+      value: false,
+    },
+    {
+      key: 'hidden',
+      title: '是否隐藏',
+      types: [VALUE_TYPES.BOOL, VALUE_TYPES.EXP],
+      value: false,
+    },
+    {
+      key: 'highlight',
+      title: '是否高亮',
+      description: '多出一些样式，例如当出现错误时，边框处理成红色，可通过该功能实现',
+      types: [VALUE_TYPES.BOOL, VALUE_TYPES.EXP],
+      value: false,
+    },
   ],
 
   fromMetaToProps(field, meta, monitor) {
@@ -53,13 +87,16 @@ export const InputConfig = {
       value: `{ ${field}.value }`,
       'onChange(e)': `{ ${field}.value = e.target.value }`,
       placeholder: `{ ${field}.placeholder }`,
+      disabled: `{ ${field}.disabled }`,
+      readonly: `{ ${field}.readonly }`,
+      hidden: `{ ${field}.hidden }`,
     }
   },
 
   mount(el, monitor) {
     const props = monitor.getComputedProps()
-    const { placeholder, type } = props
-    render(el, <Input type={type} placeholder={placeholder} />)
+    const { placeholder, type, after, disabled, readonly, hidden } = props
+    render(el, <Input type={type} placeholder={placeholder} after={after} disabled={disabled} readonly={readonly} hidden={hidden} />)
   },
   update(el, monitor) {
     InputConfig.mount(el, monitor)
@@ -69,13 +106,14 @@ export const InputConfig = {
   },
 }
 
-export const TextareaConfig = {
-  id: 'Textarea',
+export const InputNumberConfig = {
+  id: 'InputNumber',
   type: COMPONENT_TYPES.ATOM,
 
-  title: '多行文本',
-  icon: 'BsCardText',
+  title: '数字',
+  icon: 'BsAspectRatio',
 
+  tag: 'atom',
   needs: ['FormItem'],
 
   props: [
@@ -92,12 +130,129 @@ export const TextareaConfig = {
       key: 'placeholder',
       types: [VALUE_TYPES.STR, VALUE_TYPES.EXP],
     },
+    {
+      key: 'after',
+      title: '单位',
+      types: [VALUE_TYPES.STR, VALUE_TYPES.EXP],
+    },
+    {
+      key: 'disabled',
+      title: '是否禁用',
+      types: [VALUE_TYPES.BOOL, VALUE_TYPES.EXP],
+      value: false,
+    },
+    {
+      key: 'readonly',
+      title: '是否只读',
+      types: [VALUE_TYPES.BOOL, VALUE_TYPES.EXP],
+      value: false,
+    },
+    {
+      key: 'hidden',
+      title: '是否隐藏',
+      types: [VALUE_TYPES.BOOL, VALUE_TYPES.EXP],
+      value: false,
+    },
+    {
+      key: 'highlight',
+      title: '是否高亮',
+      description: '多出一些样式，例如当出现错误时，边框处理成红色，可通过该功能实现',
+      types: [VALUE_TYPES.BOOL, VALUE_TYPES.EXP],
+      value: false,
+    },
   ],
+
+  fromMetaToProps(field, meta, monitor) {
+    return {
+      value: `{ ${field}.value }`,
+      'onChange(e)': `{ ${field}.value = e.target.value }`,
+      placeholder: `{ ${field}.placeholder }`,
+      after: `{ ${field}.unit }`,
+      disabled: `{ ${field}.disabled }`,
+      readonly: `{ ${field}.readonly }`,
+      hidden: `{ ${field}.hidden }`,
+    }
+  },
+
+  mount(el, monitor) {
+    const props = monitor.getComputedProps()
+    const { placeholder, after } = props
+    render(el, <InputNumber placeholder={placeholder} after={after} />)
+  },
+  update(el, monitor) {
+    InputNumberConfig.mount(el, monitor)
+  },
+  unmount(el) {
+    unmount(el)
+  },
+}
+
+export const TextareaConfig = {
+  id: 'Textarea',
+  type: COMPONENT_TYPES.ATOM,
+
+  title: '多行文本',
+  icon: 'BsCardText',
+
+  tag: 'atom',
+  needs: ['FormItem'],
+
+  props: [
+    {
+      key: 'value',
+      title: '值',
+      types: [VALUE_TYPES.STR, VALUE_TYPES.EXP],
+    },
+    {
+      key: 'onChange',
+      types: [VALUE_TYPES.FN],
+    },
+    {
+      key: 'placeholder',
+      types: [VALUE_TYPES.STR, VALUE_TYPES.EXP],
+    },
+    {
+      key: 'disabled',
+      title: '是否禁用',
+      types: [VALUE_TYPES.BOOL, VALUE_TYPES.EXP],
+      value: false,
+    },
+    {
+      key: 'readonly',
+      title: '是否只读',
+      types: [VALUE_TYPES.BOOL, VALUE_TYPES.EXP],
+      value: false,
+    },
+    {
+      key: 'hidden',
+      title: '是否隐藏',
+      types: [VALUE_TYPES.BOOL, VALUE_TYPES.EXP],
+      value: false,
+    },
+    {
+      key: 'highlight',
+      title: '是否高亮',
+      description: '多出一些样式，例如当出现错误时，边框处理成红色，可通过该功能实现',
+      types: [VALUE_TYPES.BOOL, VALUE_TYPES.EXP],
+      value: false,
+    },
+  ],
+
+  fromMetaToProps(field, meta, monitor) {
+    return {
+      value: `{ ${field}.value }`,
+      'onChange(e)': `{ ${field}.value = e.target.value }`,
+      placeholder: `{ ${field}.placeholder }`,
+      disabled: `{ ${field}.disabled }`,
+      readonly: `{ ${field}.readonly }`,
+      hidden: `{ ${field}.hidden }`,
+    }
+  },
 
   mount(el, monitor) {
     const props = monitor.getComputedProps()
     const { placeholder } = props
-    render(el, <textarea placeholder={placeholder} />)
+    render(el, <Textarea placeholder={placeholder} />)
   },
   update(el, monitor) {
     TextareaConfig.mount(el, monitor)
@@ -114,6 +269,7 @@ export const SelectConfig = {
   title: '下拉',
   icon: 'BsListCheck',
 
+  tag: 'atom',
   needs: ['FormItem'],
 
   props: [
@@ -132,7 +288,47 @@ export const SelectConfig = {
       key: 'onChange',
       types: [VALUE_TYPES.FN],
     },
+    {
+      key: 'placeholder',
+      types: [VALUE_TYPES.STR, VALUE_TYPES.EXP],
+    },
+    {
+      key: 'disabled',
+      title: '是否禁用',
+      types: [VALUE_TYPES.BOOL, VALUE_TYPES.EXP],
+      value: false,
+    },
+    {
+      key: 'readonly',
+      title: '是否只读',
+      types: [VALUE_TYPES.BOOL, VALUE_TYPES.EXP],
+      value: false,
+    },
+    {
+      key: 'hidden',
+      title: '是否隐藏',
+      types: [VALUE_TYPES.BOOL, VALUE_TYPES.EXP],
+      value: false,
+    },
+    {
+      key: 'highlight',
+      title: '是否高亮',
+      description: '多出一些样式，例如当出现错误时，边框处理成红色，可通过该功能实现',
+      types: [VALUE_TYPES.BOOL, VALUE_TYPES.EXP],
+      value: false,
+    },
   ],
+
+  fromMetaToProps(field, meta, monitor) {
+    return {
+      value: `{ ${field}.value }`,
+      'onChange(e)': `{ ${field}.value = e.target.value }`,
+      placeholder: `{ ${field}.placeholder }`,
+      disabled: `{ ${field}.disabled }`,
+      readonly: `{ ${field}.readonly }`,
+      hidden: `{ ${field}.hidden }`,
+    }
+  },
 
   mount(el, monitor) {
     const props = monitor.getComputedProps()
@@ -143,14 +339,182 @@ export const SelectConfig = {
     ]
     const { placeholder } = props
     const options = props.options && props.options.length ? props.options : defaultOptions
-    render(el,
-      <select placeholder={placeholder}>
-        {options.map((option) => <option key={option.value} value={option.value}>{option.text}</option>)}
-      </select>
-    )
+    render(el, <Select options={options} placeholder={placeholder} />)
   },
   update(el, monitor) {
     SelectConfig.mount(el, monitor)
+  },
+  unmount(el) {
+    unmount(el)
+  },
+}
+
+export const RadioConfig = {
+  id: 'Radio',
+  type: COMPONENT_TYPES.ATOM,
+
+  title: '单选组',
+  icon: 'BsCheckCircle',
+
+  tag: 'atom',
+  needs: ['FormItem'],
+
+  props: [
+    {
+      key: 'options',
+      title: '选项列表',
+      types: [VALUE_TYPES.EXP],
+      defender: value => Array.isArray(value) && !value.some(item => !('text' in item && 'value' in item)) ? value : [],
+    },
+    {
+      key: 'value',
+      title: '值',
+      types: [VALUE_TYPES.STR, VALUE_TYPES.EXP],
+    },
+    {
+      key: 'onChange',
+      types: [VALUE_TYPES.FN],
+    },
+    {
+      key: 'placeholder',
+      types: [VALUE_TYPES.STR, VALUE_TYPES.EXP],
+    },
+    {
+      key: 'disabled',
+      title: '是否禁用',
+      types: [VALUE_TYPES.BOOL, VALUE_TYPES.EXP],
+      value: false,
+    },
+    {
+      key: 'readonly',
+      title: '是否只读',
+      types: [VALUE_TYPES.BOOL, VALUE_TYPES.EXP],
+      value: false,
+    },
+    {
+      key: 'hidden',
+      title: '是否隐藏',
+      types: [VALUE_TYPES.BOOL, VALUE_TYPES.EXP],
+      value: false,
+    },
+    {
+      key: 'highlight',
+      title: '是否高亮',
+      description: '多出一些样式，例如当出现错误时，边框处理成红色，可通过该功能实现',
+      types: [VALUE_TYPES.BOOL, VALUE_TYPES.EXP],
+      value: false,
+    },
+  ],
+
+  fromMetaToProps(field, meta, monitor) {
+    return {
+      value: `{ ${field}.value }`,
+      'onChange(e)': `{ ${field}.value = e.target.value }`,
+      placeholder: `{ ${field}.placeholder }`,
+      disabled: `{ ${field}.disabled }`,
+      readonly: `{ ${field}.readonly }`,
+      hidden: `{ ${field}.hidden }`,
+    }
+  },
+
+  mount(el, monitor) {
+    const props = monitor.getComputedProps()
+    const defaultOptions = [
+      { text: '选项一', value: 1 },
+      { text: '选项二', value: 2 },
+      { text: '选项三', value: 3 },
+    ]
+    const options = props.options && props.options.length ? props.options : defaultOptions
+    render(el, <Radio options={options} />)
+  },
+  update(el, monitor) {
+    RadioConfig.mount(el, monitor)
+  },
+  unmount(el) {
+    unmount(el)
+  },
+}
+
+export const CheckboxConfig = {
+  id: 'Checkbox',
+  type: COMPONENT_TYPES.ATOM,
+
+  title: '多选组',
+  icon: 'BsCheckBox',
+
+  tag: 'atom',
+  needs: ['FormItem'],
+
+  props: [
+    {
+      key: 'options',
+      title: '选项列表',
+      types: [VALUE_TYPES.EXP],
+      defender: value => Array.isArray(value) && !value.some(item => !('text' in item && 'value' in item)) ? value : [],
+    },
+    {
+      key: 'value',
+      title: '值',
+      types: [VALUE_TYPES.STR, VALUE_TYPES.EXP],
+    },
+    {
+      key: 'onChange',
+      types: [VALUE_TYPES.FN],
+    },
+    {
+      key: 'placeholder',
+      types: [VALUE_TYPES.STR, VALUE_TYPES.EXP],
+    },
+    {
+      key: 'disabled',
+      title: '是否禁用',
+      types: [VALUE_TYPES.BOOL, VALUE_TYPES.EXP],
+      value: false,
+    },
+    {
+      key: 'readonly',
+      title: '是否只读',
+      types: [VALUE_TYPES.BOOL, VALUE_TYPES.EXP],
+      value: false,
+    },
+    {
+      key: 'hidden',
+      title: '是否隐藏',
+      types: [VALUE_TYPES.BOOL, VALUE_TYPES.EXP],
+      value: false,
+    },
+    {
+      key: 'highlight',
+      title: '是否高亮',
+      description: '多出一些样式，例如当出现错误时，边框处理成红色，可通过该功能实现',
+      types: [VALUE_TYPES.BOOL, VALUE_TYPES.EXP],
+      value: false,
+    },
+  ],
+
+  fromMetaToProps(field, meta, monitor) {
+    return {
+      value: `{ ${field}.value }`,
+      'onChange(e)': `{ ${field}.value = e.target.value }`,
+      placeholder: `{ ${field}.placeholder }`,
+      disabled: `{ ${field}.disabled }`,
+      readonly: `{ ${field}.readonly }`,
+      hidden: `{ ${field}.hidden }`,
+    }
+  },
+
+  mount(el, monitor) {
+    const props = monitor.getComputedProps()
+    const defaultOptions = [
+      { text: '选项一', value: 1 },
+      { text: '选项二', value: 2 },
+      { text: '选项三', value: 3 },
+    ]
+    const options = props.options && props.options.length ? props.options : defaultOptions
+    render(el, <Checkbox options={options} />)
+  },
+  update(el, monitor) {
+    CheckboxConfig.mount(el, monitor)
   },
   unmount(el) {
     unmount(el)
@@ -203,7 +567,7 @@ export const FormItemConfig = {
   icon: 'BsTable',
   direction: 'h',
 
-  allows: ['Input', 'Textarea', 'Select'],
+  allows: ['tag:atom'],
 
   props: [
     {

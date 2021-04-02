@@ -1,12 +1,12 @@
 import { React, Component, Section, ifexist, Any, nonable, Int } from 'nautil'
 import { classnames } from '../../utils'
-import { DragDesigner, DropDesigner, ConfigType } from '../drag-drop/drag-drop-designer.jsx'
-import { each, isArray } from 'ts-fns'
+import { DragDesigner, DropDesigner } from '../drag-drop/drag-drop-designer.jsx'
+import { LayoutConfigType } from '../../types/layout.type.js'
 
 export class Designer extends Component {
   static props = {
     elements: nonable(Array),
-    config: ConfigType,
+    config: LayoutConfigType,
     buttons: ifexist(Any),
     settings: ifexist(Any),
     onRemove: true,

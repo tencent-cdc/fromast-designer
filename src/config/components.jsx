@@ -52,7 +52,7 @@ export const InputConfig = {
     },
     {
       key: 'after',
-      title: '末尾',
+      title: '单位',
       types: [VALUE_TYPES.STR, VALUE_TYPES.EXP],
     },
     {
@@ -87,14 +87,16 @@ export const InputConfig = {
       value: `{ ${field}.value }`,
       'onChange(e)': `{ ${field}.value = e.target.value }`,
       placeholder: `{ ${field}.placeholder }`,
-      after: `{ ${field}.unit }`,
+      disabled: `{ ${field}.disabled }`,
+      readonly: `{ ${field}.readonly }`,
+      hidden: `{ ${field}.hidden }`,
     }
   },
 
   mount(el, monitor) {
     const props = monitor.getComputedProps()
-    const { placeholder, type, after } = props
-    render(el, <Input type={type} placeholder={placeholder} after={after} />)
+    const { placeholder, type, after, disabled, readonly, hidden } = props
+    render(el, <Input type={type} placeholder={placeholder} after={after} disabled={disabled} readonly={readonly} hidden={hidden} />)
   },
   update(el, monitor) {
     InputConfig.mount(el, monitor)
@@ -130,11 +132,35 @@ export const InputNumberConfig = {
     },
     {
       key: 'after',
-      title: '末尾',
+      title: '单位',
       types: [VALUE_TYPES.STR, VALUE_TYPES.EXP],
     },
+    {
+      key: 'disabled',
+      title: '是否禁用',
+      types: [VALUE_TYPES.BOOL, VALUE_TYPES.EXP],
+      value: false,
+    },
+    {
+      key: 'readonly',
+      title: '是否只读',
+      types: [VALUE_TYPES.BOOL, VALUE_TYPES.EXP],
+      value: false,
+    },
+    {
+      key: 'hidden',
+      title: '是否隐藏',
+      types: [VALUE_TYPES.BOOL, VALUE_TYPES.EXP],
+      value: false,
+    },
+    {
+      key: 'highlight',
+      title: '是否高亮',
+      description: '多出一些样式，例如当出现错误时，边框处理成红色，可通过该功能实现',
+      types: [VALUE_TYPES.BOOL, VALUE_TYPES.EXP],
+      value: false,
+    },
   ],
-
 
   fromMetaToProps(field, meta, monitor) {
     return {
@@ -142,6 +168,9 @@ export const InputNumberConfig = {
       'onChange(e)': `{ ${field}.value = e.target.value }`,
       placeholder: `{ ${field}.placeholder }`,
       after: `{ ${field}.unit }`,
+      disabled: `{ ${field}.disabled }`,
+      readonly: `{ ${field}.readonly }`,
+      hidden: `{ ${field}.hidden }`,
     }
   },
 
@@ -182,7 +211,43 @@ export const TextareaConfig = {
       key: 'placeholder',
       types: [VALUE_TYPES.STR, VALUE_TYPES.EXP],
     },
+    {
+      key: 'disabled',
+      title: '是否禁用',
+      types: [VALUE_TYPES.BOOL, VALUE_TYPES.EXP],
+      value: false,
+    },
+    {
+      key: 'readonly',
+      title: '是否只读',
+      types: [VALUE_TYPES.BOOL, VALUE_TYPES.EXP],
+      value: false,
+    },
+    {
+      key: 'hidden',
+      title: '是否隐藏',
+      types: [VALUE_TYPES.BOOL, VALUE_TYPES.EXP],
+      value: false,
+    },
+    {
+      key: 'highlight',
+      title: '是否高亮',
+      description: '多出一些样式，例如当出现错误时，边框处理成红色，可通过该功能实现',
+      types: [VALUE_TYPES.BOOL, VALUE_TYPES.EXP],
+      value: false,
+    },
   ],
+
+  fromMetaToProps(field, meta, monitor) {
+    return {
+      value: `{ ${field}.value }`,
+      'onChange(e)': `{ ${field}.value = e.target.value }`,
+      placeholder: `{ ${field}.placeholder }`,
+      disabled: `{ ${field}.disabled }`,
+      readonly: `{ ${field}.readonly }`,
+      hidden: `{ ${field}.hidden }`,
+    }
+  },
 
   mount(el, monitor) {
     const props = monitor.getComputedProps()
@@ -223,7 +288,47 @@ export const SelectConfig = {
       key: 'onChange',
       types: [VALUE_TYPES.FN],
     },
+    {
+      key: 'placeholder',
+      types: [VALUE_TYPES.STR, VALUE_TYPES.EXP],
+    },
+    {
+      key: 'disabled',
+      title: '是否禁用',
+      types: [VALUE_TYPES.BOOL, VALUE_TYPES.EXP],
+      value: false,
+    },
+    {
+      key: 'readonly',
+      title: '是否只读',
+      types: [VALUE_TYPES.BOOL, VALUE_TYPES.EXP],
+      value: false,
+    },
+    {
+      key: 'hidden',
+      title: '是否隐藏',
+      types: [VALUE_TYPES.BOOL, VALUE_TYPES.EXP],
+      value: false,
+    },
+    {
+      key: 'highlight',
+      title: '是否高亮',
+      description: '多出一些样式，例如当出现错误时，边框处理成红色，可通过该功能实现',
+      types: [VALUE_TYPES.BOOL, VALUE_TYPES.EXP],
+      value: false,
+    },
   ],
+
+  fromMetaToProps(field, meta, monitor) {
+    return {
+      value: `{ ${field}.value }`,
+      'onChange(e)': `{ ${field}.value = e.target.value }`,
+      placeholder: `{ ${field}.placeholder }`,
+      disabled: `{ ${field}.disabled }`,
+      readonly: `{ ${field}.readonly }`,
+      hidden: `{ ${field}.hidden }`,
+    }
+  },
 
   mount(el, monitor) {
     const props = monitor.getComputedProps()
@@ -270,7 +375,47 @@ export const RadioConfig = {
       key: 'onChange',
       types: [VALUE_TYPES.FN],
     },
+    {
+      key: 'placeholder',
+      types: [VALUE_TYPES.STR, VALUE_TYPES.EXP],
+    },
+    {
+      key: 'disabled',
+      title: '是否禁用',
+      types: [VALUE_TYPES.BOOL, VALUE_TYPES.EXP],
+      value: false,
+    },
+    {
+      key: 'readonly',
+      title: '是否只读',
+      types: [VALUE_TYPES.BOOL, VALUE_TYPES.EXP],
+      value: false,
+    },
+    {
+      key: 'hidden',
+      title: '是否隐藏',
+      types: [VALUE_TYPES.BOOL, VALUE_TYPES.EXP],
+      value: false,
+    },
+    {
+      key: 'highlight',
+      title: '是否高亮',
+      description: '多出一些样式，例如当出现错误时，边框处理成红色，可通过该功能实现',
+      types: [VALUE_TYPES.BOOL, VALUE_TYPES.EXP],
+      value: false,
+    },
   ],
+
+  fromMetaToProps(field, meta, monitor) {
+    return {
+      value: `{ ${field}.value }`,
+      'onChange(e)': `{ ${field}.value = e.target.value }`,
+      placeholder: `{ ${field}.placeholder }`,
+      disabled: `{ ${field}.disabled }`,
+      readonly: `{ ${field}.readonly }`,
+      hidden: `{ ${field}.hidden }`,
+    }
+  },
 
   mount(el, monitor) {
     const props = monitor.getComputedProps()
@@ -316,7 +461,47 @@ export const CheckboxConfig = {
       key: 'onChange',
       types: [VALUE_TYPES.FN],
     },
+    {
+      key: 'placeholder',
+      types: [VALUE_TYPES.STR, VALUE_TYPES.EXP],
+    },
+    {
+      key: 'disabled',
+      title: '是否禁用',
+      types: [VALUE_TYPES.BOOL, VALUE_TYPES.EXP],
+      value: false,
+    },
+    {
+      key: 'readonly',
+      title: '是否只读',
+      types: [VALUE_TYPES.BOOL, VALUE_TYPES.EXP],
+      value: false,
+    },
+    {
+      key: 'hidden',
+      title: '是否隐藏',
+      types: [VALUE_TYPES.BOOL, VALUE_TYPES.EXP],
+      value: false,
+    },
+    {
+      key: 'highlight',
+      title: '是否高亮',
+      description: '多出一些样式，例如当出现错误时，边框处理成红色，可通过该功能实现',
+      types: [VALUE_TYPES.BOOL, VALUE_TYPES.EXP],
+      value: false,
+    },
   ],
+
+  fromMetaToProps(field, meta, monitor) {
+    return {
+      value: `{ ${field}.value }`,
+      'onChange(e)': `{ ${field}.value = e.target.value }`,
+      placeholder: `{ ${field}.placeholder }`,
+      disabled: `{ ${field}.disabled }`,
+      readonly: `{ ${field}.readonly }`,
+      hidden: `{ ${field}.hidden }`,
+    }
+  },
 
   mount(el, monitor) {
     const props = monitor.getComputedProps()

@@ -38,7 +38,6 @@
       flex: 1;
     }
 
-    input:not([type="radio"],[type="checkbox"]),
     textarea,
     select {
       background-color: #fff;
@@ -51,5 +50,31 @@
       resize: vertical;
       min-height: 40px;
     }
+  }
+
+  &__input,
+  &__input-number {
+    background-color: #fff;
+    border: #dedede solid 1px;
+    padding: 5px;
+    display: inline-block;
+
+    input {
+      background-color: #fff;
+      border: 0;
+      width: 200px;
+    }
+  }
+
+
+  &__input--hidden,
+  &__textarea--hidden,
+  &__input-number--hidden,
+  &__select--hidden,
+  &__radio--hidden,
+  &__checkbox--hidden,
+  &__form-group--hidden,
+  &__form-item--hidden {
+    opacity: .5;
   }
 }

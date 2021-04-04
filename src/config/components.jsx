@@ -1,7 +1,7 @@
 import { React } from 'nautil'
 import { unmount, render } from 'nautil/dom'
 import { VALUE_TYPES, COMPONENT_TYPES } from './constants.js'
-import { Components } from '@tencent/formast/react-components'
+import Components from '@tencent/formast/react-components'
 
 const { Input, Textarea, FormItem, FormGroup, Radio, Select, Checkbox, InputNumber } = Components
 
@@ -51,9 +51,10 @@ export const InputConfig = {
       types: [VALUE_TYPES.STR, VALUE_TYPES.EXP],
     },
     {
-      key: 'after',
-      title: '单位',
-      types: [VALUE_TYPES.STR, VALUE_TYPES.EXP],
+      key: 'required',
+      title: '是否必填',
+      types: [VALUE_TYPES.BOOL, VALUE_TYPES.EXP],
+      value: false,
     },
     {
       key: 'disabled',
@@ -80,6 +81,11 @@ export const InputConfig = {
       types: [VALUE_TYPES.BOOL, VALUE_TYPES.EXP],
       value: false,
     },
+    {
+      key: 'after',
+      title: '单位',
+      types: [VALUE_TYPES.STR, VALUE_TYPES.EXP],
+    },
   ],
 
   fromMetaToProps(field, meta, monitor) {
@@ -87,6 +93,7 @@ export const InputConfig = {
       value: `{ ${field}.value }`,
       'onChange(e)': `{ ${field}.value = e.target.value }`,
       placeholder: `{ ${field}.placeholder }`,
+      required: `{ ${field}.required }`,
       disabled: `{ ${field}.disabled }`,
       readonly: `{ ${field}.readonly }`,
       hidden: `{ ${field}.hidden }`,
@@ -95,8 +102,8 @@ export const InputConfig = {
 
   mount(el, monitor) {
     const props = monitor.getComputedProps()
-    const { placeholder, type, after, disabled, readonly, hidden } = props
-    render(el, <Input type={type} placeholder={placeholder} after={after} disabled={disabled} readonly={readonly} hidden={hidden} />)
+    const { placeholder, type, after, required, disabled, readonly, hidden, highlight } = props
+    render(el, <Input type={type} placeholder={placeholder} after={after} required={required} disabled={disabled} readonly={readonly} hidden={hidden} highlight={highlight} keepAlive />)
   },
   update(el, monitor) {
     InputConfig.mount(el, monitor)
@@ -131,9 +138,10 @@ export const InputNumberConfig = {
       types: [VALUE_TYPES.STR, VALUE_TYPES.EXP],
     },
     {
-      key: 'after',
-      title: '单位',
-      types: [VALUE_TYPES.STR, VALUE_TYPES.EXP],
+      key: 'required',
+      title: '是否必填',
+      types: [VALUE_TYPES.BOOL, VALUE_TYPES.EXP],
+      value: false,
     },
     {
       key: 'disabled',
@@ -154,6 +162,11 @@ export const InputNumberConfig = {
       value: false,
     },
     {
+      key: 'after',
+      title: '单位',
+      types: [VALUE_TYPES.STR, VALUE_TYPES.EXP],
+    },
+    {
       key: 'highlight',
       title: '是否高亮',
       description: '多出一些样式，例如当出现错误时，边框处理成红色，可通过该功能实现',
@@ -168,6 +181,7 @@ export const InputNumberConfig = {
       'onChange(e)': `{ ${field}.value = e.target.value }`,
       placeholder: `{ ${field}.placeholder }`,
       after: `{ ${field}.unit }`,
+      required: `{ ${field}.required }`,
       disabled: `{ ${field}.disabled }`,
       readonly: `{ ${field}.readonly }`,
       hidden: `{ ${field}.hidden }`,
@@ -176,8 +190,8 @@ export const InputNumberConfig = {
 
   mount(el, monitor) {
     const props = monitor.getComputedProps()
-    const { placeholder, after } = props
-    render(el, <InputNumber placeholder={placeholder} after={after} />)
+    const { placeholder, after, required, disabled, readonly, hidden, highlight } = props
+    render(el, <InputNumber placeholder={placeholder} after={after} required={required} disabled={disabled} readonly={readonly} hidden={hidden} highlight={highlight} keepAlive />)
   },
   update(el, monitor) {
     InputNumberConfig.mount(el, monitor)
@@ -212,6 +226,12 @@ export const TextareaConfig = {
       types: [VALUE_TYPES.STR, VALUE_TYPES.EXP],
     },
     {
+      key: 'required',
+      title: '是否必填',
+      types: [VALUE_TYPES.BOOL, VALUE_TYPES.EXP],
+      value: false,
+    },
+    {
       key: 'disabled',
       title: '是否禁用',
       types: [VALUE_TYPES.BOOL, VALUE_TYPES.EXP],
@@ -243,6 +263,7 @@ export const TextareaConfig = {
       value: `{ ${field}.value }`,
       'onChange(e)': `{ ${field}.value = e.target.value }`,
       placeholder: `{ ${field}.placeholder }`,
+      required: `{ ${field}.required }`,
       disabled: `{ ${field}.disabled }`,
       readonly: `{ ${field}.readonly }`,
       hidden: `{ ${field}.hidden }`,
@@ -251,8 +272,8 @@ export const TextareaConfig = {
 
   mount(el, monitor) {
     const props = monitor.getComputedProps()
-    const { placeholder } = props
-    render(el, <Textarea placeholder={placeholder} />)
+    const { placeholder, required, disabled, readonly, hidden, highlight } = props
+    render(el, <Textarea placeholder={placeholder} required={required} disabled={disabled} readonly={readonly} hidden={hidden} highlight={highlight} keepAlive />)
   },
   update(el, monitor) {
     TextareaConfig.mount(el, monitor)
@@ -293,6 +314,12 @@ export const SelectConfig = {
       types: [VALUE_TYPES.STR, VALUE_TYPES.EXP],
     },
     {
+      key: 'required',
+      title: '是否必填',
+      types: [VALUE_TYPES.BOOL, VALUE_TYPES.EXP],
+      value: false,
+    },
+    {
       key: 'disabled',
       title: '是否禁用',
       types: [VALUE_TYPES.BOOL, VALUE_TYPES.EXP],
@@ -324,6 +351,7 @@ export const SelectConfig = {
       value: `{ ${field}.value }`,
       'onChange(e)': `{ ${field}.value = e.target.value }`,
       placeholder: `{ ${field}.placeholder }`,
+      required: `{ ${field}.required }`,
       disabled: `{ ${field}.disabled }`,
       readonly: `{ ${field}.readonly }`,
       hidden: `{ ${field}.hidden }`,
@@ -337,9 +365,9 @@ export const SelectConfig = {
       { text: '选项二', value: 2 },
       { text: '选项三', value: 3 },
     ]
-    const { placeholder } = props
+    const { placeholder, required, disabled, readonly, hidden, highlight } = props
     const options = props.options && props.options.length ? props.options : defaultOptions
-    render(el, <Select options={options} placeholder={placeholder} />)
+    render(el, <Select options={options} placeholder={placeholder} required={required} disabled={disabled} readonly={readonly} hidden={hidden} highlight={highlight} keepAlive />)
   },
   update(el, monitor) {
     SelectConfig.mount(el, monitor)
@@ -380,6 +408,12 @@ export const RadioConfig = {
       types: [VALUE_TYPES.STR, VALUE_TYPES.EXP],
     },
     {
+      key: 'required',
+      title: '是否必填',
+      types: [VALUE_TYPES.BOOL, VALUE_TYPES.EXP],
+      value: false,
+    },
+    {
       key: 'disabled',
       title: '是否禁用',
       types: [VALUE_TYPES.BOOL, VALUE_TYPES.EXP],
@@ -424,8 +458,9 @@ export const RadioConfig = {
       { text: '选项二', value: 2 },
       { text: '选项三', value: 3 },
     ]
+    const { placeholder, required, disabled, readonly, hidden, highlight } = props
     const options = props.options && props.options.length ? props.options : defaultOptions
-    render(el, <Radio options={options} />)
+    render(el, <Radio options={options} placeholder={placeholder} required={required} disabled={disabled} readonly={readonly} hidden={hidden} highlight={highlight} keepAlive />)
   },
   update(el, monitor) {
     RadioConfig.mount(el, monitor)
@@ -466,6 +501,12 @@ export const CheckboxConfig = {
       types: [VALUE_TYPES.STR, VALUE_TYPES.EXP],
     },
     {
+      key: 'required',
+      title: '是否必填',
+      types: [VALUE_TYPES.BOOL, VALUE_TYPES.EXP],
+      value: false,
+    },
+    {
       key: 'disabled',
       title: '是否禁用',
       types: [VALUE_TYPES.BOOL, VALUE_TYPES.EXP],
@@ -510,8 +551,9 @@ export const CheckboxConfig = {
       { text: '选项二', value: 2 },
       { text: '选项三', value: 3 },
     ]
+    const { placeholder, required, disabled, readonly, hidden, highlight } = props
     const options = props.options && props.options.length ? props.options : defaultOptions
-    render(el, <Checkbox options={options} />)
+    render(el, <Checkbox options={options} placeholder={placeholder} required={required} disabled={disabled} readonly={readonly} hidden={hidden} highlight={highlight} keepAlive />)
   },
   update(el, monitor) {
     CheckboxConfig.mount(el, monitor)
@@ -549,7 +591,7 @@ export const FormGroupConfig = {
     const { DropBox } = monitor
     const props = monitor.getComputedProps()
     const { title, hidden } = props
-    render(el, <FormGroup title={title} hidden={hidden}><DropBox /></FormGroup>)
+    render(el, <FormGroup title={title} hidden={hidden} keepAlive><DropBox /></FormGroup>)
   },
   update(el, monitor) {
     FormGroupConfig.mount(el, monitor)
@@ -582,13 +624,19 @@ export const FormItemConfig = {
       types: [VALUE_TYPES.BOOL, VALUE_TYPES.EXP],
       value: false,
     },
+    {
+      key: 'errors',
+      title: '错误',
+      types: [VALUE_TYPES.EXP],
+      value: '',
+    }
   ],
 
   mount(el, monitor) {
     const { DropBox } = monitor
     const props = monitor.getComputedProps()
-    const { label, hidden } = props
-    render(el, <FormItem label={label} hidden={hidden}><DropBox /></FormItem>)
+    const { label, hidden, errors } = props
+    render(el, <FormItem label={label} hidden={hidden} errors={errors} keepAlive><DropBox /></FormItem>)
   },
   update(el, monitor) {
     FormItemConfig.mount(el, monitor)

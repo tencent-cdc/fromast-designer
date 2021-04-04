@@ -1,4 +1,4 @@
-import { ifexist, Dict, List, Any, Mapping } from 'nautil'
+import { ifexist, Dict, List, Any, Mapping, Enum } from 'nautil'
 import { VALUE_TYPES } from '../config/constants.js'
 
 const AttributeConfigObj = {
@@ -31,7 +31,7 @@ export const SchemaConfigType = new Dict({
   ]),
   // 控制权限
   policies: ifexist(new Mapping({
-    key: String,
+    key: new Enum(['$', String]), // $表示全局设置
     value: {
       edit: ifexist(Boolean), // 是否可编辑
       remove: ifexist(Boolean), // 是否可移除

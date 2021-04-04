@@ -32,11 +32,11 @@ export class LayoutDesigner extends Component {
   data = {
     settingTabs: [
       {
-        text: 'UI配置',
+        text: '数据配置',
         value: 0,
       },
       {
-        text: '数据配置',
+        text: 'UI配置',
         value: 1,
       },
     ]
@@ -70,9 +70,9 @@ export class LayoutDesigner extends Component {
     }
   }
   handleSelect = (selectedMonitor) => {
-    const { bindField = '', importFields = [], importProps = [], source } = selectedMonitor
+    const { bindField = '', importFields = [], importProps = [] } = selectedMonitor
     this.setState({
-      activeSetting: source.type === COMPONENT_TYPES.ATOM ? 1 : 0,
+      activeSetting: 0,
       bindField,
       importFields: importFields.join(','),
       importProps: importProps.join(','),
@@ -198,7 +198,7 @@ export class LayoutDesigner extends Component {
                 </Section>
                 <Section stylesheet={[classnames('layout-designer__settings-content')]}>
                   <Switch of={activeSetting}>
-                    <Case is={0} render={() =>
+                    <Case is={1} render={() =>
                       <Form aside>
                         {selectedMonitor.source.props.map((item) => {
                           return (
@@ -219,7 +219,7 @@ export class LayoutDesigner extends Component {
                         })}
                       </Form>
                     } />
-                    <Case is={1} render={() =>
+                    <Case is={0} render={() =>
                       <Form aside>
                         <If is={selectedMonitor.source.type === COMPONENT_TYPES.ATOM} render={() =>
                           <FormItem>

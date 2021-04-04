@@ -18,6 +18,14 @@ import { VALUE_TYPES } from '../config/constants.js'
 import { Popup } from '../libs/popup.js'
 import { SchemaConfigType } from '../types/model.type.js'
 
+const hasPolicy = (policies, key, policy) => {
+  let hasPermission = policies.$ && policy in policies.$ ? !!policies.$[policy] : true
+  if (policies[key] && policy in policies[key]) {
+    hasPermission = !!policies[key][policy]
+  }
+  return hasPermission
+}
+
 export class SchemaDesigner extends Component {
   static props = {
     schemaJSON: nonable(Object),
@@ -100,6 +108,10 @@ export class SchemaDesigner extends Component {
 
       const { schemaJSON = {}, onSchemaJSONChange } = this.props
 
+      if (this.state.editData && this.state.editData[0] !== field && schemaJSON[field]) {
+        return popup.toast(`${field}已经存在，如果要覆盖，请先删除原有${field}后覆盖`)
+      }
+
       const next = {
         ...schemaJSON,
         [field]: meta,
@@ -109,6 +121,7 @@ export class SchemaDesigner extends Component {
         delete next.validators
       }
 
+      // 删除重命名前的字段
       if (this.state.editData && this.state.editData[0] !== field) {
         delete next[this.state.editData[0]]
       }
@@ -130,10 +143,10 @@ export class SchemaDesigner extends Component {
             return (
               <Section stylesheet={[classnames('schema-designer__field')]} key={field}>
                 <Section stylesheet={[classnames('schema-designer__field-label')]}>{field + (meta.label ? '(' + meta.label + ')' : '')}</Section>
-                <If is={!(key in policies) || typeof policies[key].edit === 'undefined' || policies[key].edit === true}>
+                <If is={hasPolicy(policies, key, 'edit')}>
                   <Button primary onHit={() => this.handleEditField(field)}>编辑</Button>
                 </If>
-                <If is={!(key in policies) || typeof policies[key].remove === 'undefined' || policies[key].remove === true}>
+                <If is={hasPolicy(policies, key, 'remove')}>
                   <Confirm
                     content="确定要删除该字段吗？"
                     onSubmit={() => this.handleRemoveField(field)}
@@ -419,7 +432,7 @@ class MetaForm extends Component {
   }
 
   render() {
-    const { aside, width, title, isShow, onClose, onCancel, config } = this.props
+    const { aside, width, title, isShow, onClose, onCancel, config, data } = this.props
     const { field, validators, form } = this.state
 
     if (isEmpty(form)) {
@@ -496,7 +509,7 @@ class MetaForm extends Component {
         <Form aside={aside}>
           <FormItem>
             <Label>字段名</Label>
-            <Input value={field} onChange={(e) => handleChangeState(state => state.field = e.target.value)} disabled={(policies[field] && !policies[field].rename)} />
+            <Input value={field} onChange={(e) => handleChangeState(state => state.field = e.target.value)} disabled={data && !hasPolicy(policies, data[0], 'rename')} />
           </FormItem>
           <Each of={editors} render={(editor) =>
             <If key={editor.key} is={editor.key === 'validators'} render={() => {

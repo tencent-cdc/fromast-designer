@@ -1,10 +1,7 @@
 import { React } from 'nautil'
 import { unmount, render } from 'nautil/dom'
 import { VALUE_TYPES, COMPONENT_TYPES } from './constants.js'
-import Components from '@tencent/formast/react-components'
-
-const { Input, Textarea, FormItem, FormGroup, Radio, Select, Checkbox, InputNumber } = Components
-
+import { Input, Textarea, FormItem, FormGroup, Radio, Select, Checkbox, InputNumber } from '@tencent/formast/react-components'
 
 export const InputConfig = {
   id: 'Input',
@@ -312,6 +309,7 @@ export const SelectConfig = {
     {
       key: 'placeholder',
       types: [VALUE_TYPES.STR, VALUE_TYPES.EXP],
+      value: '请选择',
     },
     {
       key: 'required',

@@ -2,6 +2,7 @@ import { React } from 'nautil'
 import { unmount, render } from 'nautil/dom'
 import { VALUE_TYPES, COMPONENT_TYPES } from './constants.js'
 import { Input, Textarea, FormItem, FormGroup, Radio, Select, Checkbox, InputNumber } from '@tencent/formast/react-components'
+import { isArray } from 'ts-fns'
 
 export const InputConfig = {
   id: 'Input',
@@ -85,7 +86,7 @@ export const InputConfig = {
     },
   ],
 
-  fromMetaToProps(field, meta, monitor) {
+  fromFieldToProps(field, meta, monitor) {
     return {
       value: `{ ${field}.value }`,
       'onChange(e)': `{ ${field}.value = e.target.value }`,
@@ -172,7 +173,7 @@ export const InputNumberConfig = {
     },
   ],
 
-  fromMetaToProps(field, meta, monitor) {
+  fromFieldToProps(field, meta, monitor) {
     return {
       value: `{ ${field}.value }`,
       'onChange(e)': `{ ${field}.value = e.target.value }`,
@@ -255,7 +256,7 @@ export const TextareaConfig = {
     },
   ],
 
-  fromMetaToProps(field, meta, monitor) {
+  fromFieldToProps(field, meta, monitor) {
     return {
       value: `{ ${field}.value }`,
       'onChange(e)': `{ ${field}.value = e.target.value }`,
@@ -344,7 +345,7 @@ export const SelectConfig = {
     },
   ],
 
-  fromMetaToProps(field, meta, monitor) {
+  fromFieldToProps(field, meta, monitor) {
     return {
       value: `{ ${field}.value }`,
       'onChange(e)': `{ ${field}.value = e.target.value }`,
@@ -438,7 +439,7 @@ export const RadioConfig = {
     },
   ],
 
-  fromMetaToProps(field, meta, monitor) {
+  fromFieldToProps(field, meta, monitor) {
     return {
       value: `{ ${field}.value }`,
       'onChange(e)': `{ ${field}.value = e.target.value }`,
@@ -531,7 +532,7 @@ export const CheckboxConfig = {
     },
   ],
 
-  fromMetaToProps(field, meta, monitor) {
+  fromFieldToProps(field, meta, monitor) {
     return {
       value: `{ ${field}.value }`,
       'onChange(e)': `{ ${field}.value = e.target.value }`,
@@ -629,6 +630,30 @@ export const FormItemConfig = {
       value: '',
     }
   ],
+
+  fromSchemaToJSON(props, ...children) {
+    return [{
+      ...props,
+      'render()!': children.length > 1 ? ['Fragment', null, ...children] : children[0],
+    }]
+  },
+
+  fromJSONToSchema(props, ...children) {
+    const content = props['render()!']
+    if (content) {
+      const attrs = { ...props }
+      delete attrs['render()!']
+      if (isArray(content) && content[0] === 'Fragment') {
+        const [_1, _2, ...children] = content
+        return [attrs, ...children]
+      }
+      else {
+        return [attrs, content]
+      }
+    }
+
+    return [props, ...children]
+  },
 
   mount(el, monitor) {
     const { DropBox } = monitor

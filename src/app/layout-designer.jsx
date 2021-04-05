@@ -145,12 +145,12 @@ export class LayoutDesigner extends Component {
   handleBindField = (value) => {
     this.setState({ bindField: value }, () => {
       const selectedMonitor = this.store.getState()
-      const { fromMetaToProps } = selectedMonitor.source
+      const { fromFieldToProps } = selectedMonitor.source
 
       const schema = this.props.json?.model?.schema || {}
       const meta = schema[value]
 
-      const props = fromMetaToProps(value, meta, selectedMonitor)
+      const props = fromFieldToProps(value, meta, selectedMonitor)
       if (props) {
         selectedMonitor.setExpProps(props)
       }

@@ -70,20 +70,36 @@ export class Monitor {
       this.setInitProps(source.props)
     }
   }
+  // 自动绑定序号，不用自己传slot
+  useDropBoxes(count) {
+    const DropBoxes = []
+    const { DropBox } = this
+    for (let i = 0; i < count; i ++) {
+      DropBoxes.push(function () {
+        return <DropBox slot={i} />
+      })
+    }
+    return DropBoxes
+  }
   DropBox = (props) => {
     const { store } = this
     const { config, onSelect, onRemove, onChange, expParser } = this.getPassedProps()
-    const { index } = props
-    const useGroup = typeof index === 'number'
+    const { id, fromSlotsToSchema, fromSchemaToSlots } = this.source
+
+    if ('slot' in props && typeof slot !== 'number') {
+      throw new Error(`${id} 传入的slot必须是自然数`)
+    }
+
+    const { slot } = props
+    const useSlots = typeof slot === 'number'
 
     // 检查是否传入了必要的处理方法
-    const { id, fromRuntimeToJSON, fromJSONToRuntime } = this.source
-    if (useGroup) {
-      if (!fromJSONToRuntime) {
-        throw new Error(`${id} 必须传入 fromJSONToRuntime`)
+    if (useSlots) {
+      if (!fromSchemaToSlots) {
+        throw new Error(`${id} 必须传入 fromSchemaToSlots`)
       }
-      if (!fromRuntimeToJSON) {
-        throw new Error(`${id} 必须传入 fromRuntimeToJSON`)
+      if (!fromSlotsToSchema) {
+        throw new Error(`${id} 必须传入 fromSlotsToSchema`)
       }
     }
 
@@ -94,12 +110,12 @@ export class Monitor {
           source={this.source}
           type={this.id}
           expParser={expParser}
-          elements={useGroup ? this.elements[index] : this.elements}
+          elements={useSlots ? this.elements[slot] : this.elements}
           onSelect={onSelect}
           onRemove={onRemove}
           onChange={(children) => {
-            if (useGroup) {
-              this.children[index] = children
+            if (useSlots) {
+              this.children[slot] = children
             }
             else {
               this.children = children
@@ -235,7 +251,7 @@ export class Monitor {
         })
       }
 
-      const { id, fromRuntimeToJSON } = source
+      const { id, fromSlotsToSchema, fromSchemaToJSON } = source
       const attrs = {}
       each(_props, (data, key) => {
         const { type, params, value } = data
@@ -250,19 +266,20 @@ export class Monitor {
         }
       })
 
+      const output = ([id, attrs, ...children]) => {
+        return fromSchemaToJSON ? [id, ...fromSchemaToJSON(attrs, ...children)] : [id, attrs, ...children]
+      }
+
       if (children.length && isArray(children[0]) && isArray(children[0][0])) {
-        if (!fromRuntimeToJSON) {
-          throw new Error(`${id} 必须传入 fromRuntimeToJSON`)
+        if (!fromSlotsToSchema) {
+          throw new Error(`${id} 必须传入 fromSlotsToSchema`)
         }
+        const slots = children.map(items => items.map(extract))
+        const [_attrs, _children] = fromSlotsToSchema.call(monitor, attrs, slots)
+        return output([id, _attrs, ..._children])
       }
 
-      if (fromRuntimeToJSON) {
-        const items = children.map(items => items.map(extract))
-        const [_attrs, _children] = fromRuntimeToJSON.call(monitor, attrs, items)
-        return [id, _attrs, ..._children]
-      }
-
-      return [id, attrs, ...children.map(extract)]
+      return output([id, attrs, ...children.map(extract)])
     }
     const jsx = extract(this)
 
@@ -323,8 +340,9 @@ export class DropDesigner extends Component {
 
       const item = this.createAndPutItem(this.items.length - 1, source)
 
-      const { fromJSONToRuntime } = source
-      const [props, children] = fromJSONToRuntime ? fromJSONToRuntime.call(item, _props, _children) : [_props, _children]
+      const { fromSchemaToSlots, fromJSONToSchema } = source
+      const [_attrs, ..._slots] = fromJSONToSchema ? fromJSONToSchema(_props, ..._children) : [_props, ..._children]
+      const [props, children] = fromSchemaToSlots ? fromSchemaToSlots.call(item, _attrs, _slots) : [_attrs, _slots]
 
       item.setExpProps(props)
       item.elements = children

@@ -35,13 +35,21 @@ export const LayoutConfigType = new Dict({
           // 在绑定字段的时候被调用
           // 将接收到的JSON的一个meta，转化为UI配置里面的props配置具体值
           // (field, meta, monitor)
-          fromMetaToProps: ifexist(Function),
+          fromFieldToProps: ifexist(Function),
+
+          // 有些情况下，组件的内容是通过 render={() => <Content />} 这种形式渲染，通过 fromSchemaToSlots 可以把JSON生成这种运行时需要的逻辑
+          fromSchemaToSlots: ifexist(Function),
+          // 和fromSchemaToSlots是反向的，在生成JSON时被调用
+          fromSlotsToSchema: ifexist(Function),
 
           // 在生成布局信息时调用
-          // 有些情况下，组件的内容是通过 render={() => <Content />} 这种形式渲染，通过 fromJSONToRuntime 可以把JSON生成这种运行时需要的逻辑
-          fromJSONToRuntime: ifexist(Function),
-          // 和fromJSONToRuntime是反向的，在生成JSON时被调用
-          fromRuntimeToJSON: ifexist(Function),
+          // 先于fromSchemaToSlots被调用
+          fromJSONToSchema: ifexist(Function),
+          // 将处理结果再次进行处理，生成最终的JSON
+          // 可用于调整JSON的结构
+          // 后于fromSlotsToSchema被调用
+          fromSchemaToJSON: ifexist(Function),
+
 
           mount: Function,
           update: Function,

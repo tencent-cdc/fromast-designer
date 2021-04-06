@@ -30,12 +30,6 @@ const layout = {
 const model = {
   schema: {
     attributes: SchemaAttributes,
-    policies: {
-      aa: {
-        remove: false,
-        rename: false,
-      },
-    },
   },
 }
 

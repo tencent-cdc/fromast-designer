@@ -180,7 +180,7 @@ export class ModelDesigner extends Component {
               </Form>
             </Case>
             <Case is={1}>
-              <ModelDesigner modelJSON={submodel.json} onModelJSONChange={json => this.update(state => state.submodel.json = json)} />
+              <ModelDesigner modelConfig={modelConfig} modelJSON={submodel.json} onModelJSONChange={json => this.update(state => state.submodel.json = json)} />
             </Case>
           </Switch>
         </Modal>

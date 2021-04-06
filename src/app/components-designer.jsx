@@ -78,7 +78,7 @@ export class ComponentsDesigner extends Component {
   }
 
   Render(props) {
-    const { config, json = {} } = props
+    const { layoutConfig, json = {} } = props
     const componentsJSON = json.components || {}
     const componentNames = Object.keys(componentsJSON)
 
@@ -120,7 +120,7 @@ export class ComponentsDesigner extends Component {
         <Section stylesheet={classnames('components-designer__main')}>
           <Each of={componentNames} render={(componentName) =>
             <Section stylesheet={[{ flex: 1, display: selectedComponentName === componentName ? 'flex' : 'none' }]}>
-              <LayoutDesigner layoutConfig={config.layout} json={selectedComponentJSON} onLayoutJSONChange={this.handleChangeComponent} />
+              <LayoutDesigner layoutConfig={layoutConfig} json={selectedComponentJSON} onLayoutJSONChange={this.handleChangeComponent} />
             </Section>
           } />
         </Section>

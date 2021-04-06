@@ -67,7 +67,7 @@ export const FormItem = Section.extend(props => ({
 }))
 
 export const FormLoop = (props) => {
-  const { items, render, onAdd, onDel, onChange } = props
+  const { items, render, onAdd, onDel, onChange, canAdd, canRemove } = props
   const handleAdd = (index) => {
     onAdd(index)
   }
@@ -91,13 +91,13 @@ export const FormLoop = (props) => {
               {render(i, item, handleChange)}
             </Section>
             <Section stylesheet={[classnames('form-loop-item__buttons')]}>
-              <Button primary onHit={() => handleAdd(i)}>+</Button>
-              <Button secondary onHit={() => handleDel(i)}>-</Button>
+              {!canAdd || canAdd() ? <Button primary onHit={() => handleAdd(i)}>+</Button> : null}
+              {!canRemove || canRemove() ? <Button secondary onHit={() => handleDel(i)}>-</Button> : null}
             </Section>
           </Section>
         )
       })}
-      {items.length ? null : <Button primary onHit={() => handleAdd()}>+</Button>}
+      {!items.length && (!canAdd || canAdd()) ? <Button primary onHit={() => handleAdd()}>+</Button> : null}
     </Section>
   )
 }

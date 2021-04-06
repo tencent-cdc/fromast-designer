@@ -25,7 +25,7 @@
     "react-icons": "^4.2.0",
     "scopex": "^2.1.0",
     "ts-fns": "^9.3.1",
-    "tyshemo": "^10.7.2"
+    "tyshemo": "^10.7.3"
   },
   "devDependencies": {
     "@babel/core": "^7.12.17",

@@ -18,10 +18,10 @@ import { VALUE_TYPES } from '../config/constants.js'
 import { Popup } from '../libs/popup.js'
 import { SchemaConfigType } from '../types/model.type.js'
 
-const hasPolicy = (policies, key, policy) => {
+const hasPolicy = (policies, field, policy) => {
   let hasPermission = policies.$ && policy in policies.$ ? !!policies.$[policy] : true
-  if (policies[key] && policy in policies[key]) {
-    hasPermission = !!policies[key][policy]
+  if (policies[field] && policy in policies[field]) {
+    hasPermission = !!policies[field][policy]
   }
   return hasPermission
 }
@@ -521,18 +521,20 @@ class MetaForm extends Component {
                     onAdd={handleAddValidator}
                     onDel={handleDelValidator}
                     onChange={validators => this.setState({ validators })}
+                    canAdd={() => hasPolicy(policies, field, 'validator_add')}
+                    canRemove={() => hasPolicy(policies, field, 'validator_remove')}
                     render={(i, validator, onChange) => {
                       return (
                         <>
                           <FormItem stylesheet={[classnames('form-item--rich')]}>
-                            <RichPropEditor label="校验函数(validate)" types={[VALUE_TYPES.EXP, VALUE_TYPES.FN]} data={validator.validate} onChange={validate => onChange({ validate })} />
+                            <RichPropEditor label="校验函数(validate)" types={[VALUE_TYPES.EXP, VALUE_TYPES.FN]} data={validator.validate} onChange={validate => onChange({ validate })} disabled={!hasPolicy(policies, field, 'validator_edit')} />
                           </FormItem>
                           <If is={validator.validate.type === VALUE_TYPES.FN}>
                             <FormItem stylesheet={[classnames('form-item--rich')]}>
-                              <RichPropEditor label="是否校验(determine)" types={[VALUE_TYPES.EXP, VALUE_TYPES.FN]} data={validator.determine} onChange={determine => onChange({ determine })} />
+                              <RichPropEditor label="是否校验(determine)" types={[VALUE_TYPES.EXP, VALUE_TYPES.FN]} data={validator.determine} onChange={determine => onChange({ determine })} disabled={!hasPolicy(policies, field, 'validator_edit')} />
                             </FormItem>
                             <FormItem stylesheet={[classnames('form-item--rich')]}>
-                              <RichPropEditor label="消息(message)" types={[VALUE_TYPES.STR ,VALUE_TYPES.EXP, VALUE_TYPES.FN]} data={validator.message} onChange={message => onChange({ message })} />
+                              <RichPropEditor label="消息(message)" types={[VALUE_TYPES.STR ,VALUE_TYPES.EXP, VALUE_TYPES.FN]} data={validator.message} onChange={message => onChange({ message })} disabled={!hasPolicy(policies, field, 'validator_edit')} />
                             </FormItem>
                           </If>
                           {i !== validators.length - 1 ? <Section stylesheet={[classnames('line')]} /> : null}
@@ -552,7 +554,7 @@ class MetaForm extends Component {
                       data={this.state.form[editor.key]}
                       onChange={data => handleChangeForm({ [editor.key]: data })}
                       options={editor.options}
-                      disabled={editor.disabled}
+                      disabled={editor.disabled || !hasPolicy(policies, field, editor.key + '_edit')}
                       description={editor.description}
                     />
                   </FormItem>

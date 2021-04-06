@@ -95,7 +95,7 @@ class App extends Component {
             </Section>
           </If>
           {!config.disableModel && activeTopTab === 'model' ? <ModelDesigner modelConfig={config.model} modelJSON={model} onModelJSONChange={this.handleModelJSONChange} /> : null}
-          {!config.disableComponents && activeTopTab === 'components' ? <ComponentsDesigner config={config} json={json} onComponentsJSONChange={this.handleComponentsChange} /> : null}
+          {!config.disableComponents && activeTopTab === 'components' ? <ComponentsDesigner layoutConfig={config.layout} json={json} onComponentsJSONChange={this.handleComponentsChange} /> : null}
           {!config.disableLayout && activeTopTab === 'layout' ? <LayoutDesigner layoutConfig={config.layout} json={json} onLayoutJSONChange={this.handleLayoutChange} useComponents={true} /> : null}
         </Section>
       </DndProvider>

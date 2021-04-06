@@ -631,29 +631,7 @@ export const FormItemConfig = {
     }
   ],
 
-  fromSchemaToJSON(props, ...children) {
-    return [{
-      ...props,
-      'render()!': children.length > 1 ? ['Fragment', null, ...children] : children[0],
-    }]
-  },
-
-  fromJSONToSchema(props, ...children) {
-    const content = props['render()!']
-    if (content) {
-      const attrs = { ...props }
-      delete attrs['render()!']
-      if (isArray(content) && content[0] === 'Fragment') {
-        const [_1, _2, ...children] = content
-        return [attrs, ...children]
-      }
-      else {
-        return [attrs, content]
-      }
-    }
-
-    return [props, ...children]
-  },
+  renderFn: 'render()',
 
   mount(el, monitor) {
     const { DropBox } = monitor

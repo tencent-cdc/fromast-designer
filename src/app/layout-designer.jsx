@@ -143,52 +143,56 @@ export class LayoutDesigner extends Component {
   })
 
   handleBindField = (value) => {
-    this.setState({ bindField: value }, () => {
-      const selectedMonitor = this.store.getState()
-      const { fromMetaToProps } = selectedMonitor.source
+    const selectedMonitor = this.store.getState()
+    const { id, fromMetaToProps, loopMap } = selectedMonitor.source
 
-      const schema = this.props.json?.model?.schema || {}
-      const chain = makeKeyChain(value)
-      let meta = schema
+    if (value.substr(value.length - 3, 3) === '[*]' && !loopMap) {
+      throw new Error(`${id} 必须配置 loopMap 才能绑定子模型列表`)
+    }
 
-      for (let i = 0, len = chain.length; i < len; i ++) {
-        const key = chain[i]
-        if (`<${key}>` in meta) {
-          const sub = meta[`<${key}>`]
-          const info = meta[`|${key}|`] || {}
-          let subSchema = null
+    const schema = this.props.json?.model?.schema || {}
+    const chain = makeKeyChain(value)
+    let meta = schema
 
-          if (chain[i + 1] === '*') {
-            if (!isArray(sub)) {
-              throw new Error(`无法从schema中读取${value}中的${key}，它不是一个子模型列表`)
-            }
-            subSchema = sub[0].schema
-            i ++
-          }
-          else {
-            if (isArray(sub)) {
-              throw new Error(`从schema中读取${value}是不允许的，必须在末尾加[*]，即${value}[*]`)
-            }
-            subSchema = sub.schema
-          }
+    for (let i = 0, len = chain.length; i < len; i ++) {
+      const key = chain[i]
+      if (`<${key}>` in meta) {
+        const sub = meta[`<${key}>`]
+        const info = meta[`|${key}|`] || {}
+        let subSchema = null
 
-          // 只使用该子模型
-          if (i === len - 1) {
-            meta = info
+        if (chain[i + 1] === '*') {
+          if (!isArray(sub)) {
+            throw new Error(`无法从schema中读取${value}中的${key}，它不是一个子模型列表`)
           }
-          // 使用子模型内部
-          else {
-            meta = subSchema
-          }
-        }
-        else if (key in meta) {
-          meta = meta[key]
+          subSchema = sub[0].schema
+          i ++
         }
         else {
-          throw new Error(`无法从schema中读取${value}中的${key}，请检查选中字段是否正常`)
+          if (isArray(sub)) {
+            throw new Error(`从schema中读取${value}是不允许的，必须在末尾加[*]，即${value}[*]`)
+          }
+          subSchema = sub.schema
+        }
+
+        // 只使用该子模型
+        if (i === len - 1) {
+          meta = info
+        }
+        // 使用子模型内部
+        else {
+          meta = subSchema
         }
       }
+      else if (key in meta) {
+        meta = meta[key]
+      }
+      else {
+        throw new Error(`无法从schema中读取${value}中的${key}，请检查选中字段是否正常`)
+      }
+    }
 
+    this.setState({ bindField: value }, () => {
       if (fromMetaToProps) {
         const props = fromMetaToProps(value, meta, selectedMonitor)
         selectedMonitor.setExpProps(props)
@@ -201,10 +205,17 @@ export class LayoutDesigner extends Component {
   }
 
   handleChangeImport = (type, value) => {
+    const selectedMonitor = this.store.getState()
+    const { id, loopMap } = selectedMonitor.source
+    const values = value.split(',').filter(item => !!item)
+
+    if (values.some(item => item.substring(item.length - 3, 3) === '[*]') && !loopMap) {
+      throw new Error(`${id} 必须配置 loopMap 才能绑定子模型列表`)
+    }
+
     const key = 'import' + type[0].toUpperCase() + type.substr(1)
     this.setState({ [key]: value }, () => {
-      const selectedMonitor = this.store.getState()
-      selectedMonitor[key] = value.split(',').filter(item => !!item)
+      selectedMonitor[key] =
       this.update()
 
       this.handleSaveSettings()
@@ -217,8 +228,14 @@ export class LayoutDesigner extends Component {
     const { settingTabs } = this.data
     const { json = {}, layoutConfig, useComponents } = this.props
     const { model = {}, components = {}, layout = {} } = json
+    const { loopMap } = selectedMonitor.source
 
-    const fieldsOptions = genFieldsOptions(model)
+    let fieldsOptions = genFieldsOptions(model)
+    if (!loopMap) {
+      fieldsOptions = fieldsOptions.filter((item) => {
+        return item.value.substr(item.value.length - 3, 3) !== '[*]'
+      })
+    }
 
     const componentsConfig = useComponents ? this.getComponentsConfig(components) : {}
     const sourceConfig = getConfig(componentsConfig, getConfig(layoutConfig))

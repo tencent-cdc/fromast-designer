@@ -3,10 +3,9 @@ import { DropBox, DragBox } from './drag-drop.jsx'
 import { classnames, parseKey } from '../../utils'
 import { DndProvider } from 'react-dnd'
 import { HTML5Backend } from 'react-dnd-html5-backend'
-import { createRandomString, each } from 'ts-fns'
 import { Confirm } from '../confirm/confirm.jsx'
 import { VALUE_TYPES } from '../../config/constants.js'
-import { isFunction, find, isArray } from 'ts-fns'
+import { isFunction, find, isArray, createRandomString, each, createSafeExp } from 'ts-fns'
 import * as icons from '../icon'
 import { BsTrash, BsArrowsMove } from '../icon'
 import { LayoutConfigType } from '../../types/layout.type.js'
@@ -52,6 +51,35 @@ const getExp = (str) => {
   return str.substring(1, str.length - 1).trim()
 }
 
+const genJSONByRender = (renderFn, props, ...children) => {
+  if (renderFn) {
+    return [{
+      ...props,
+      [`${renderFn}!`]: children.length > 1 ? ['Fragment', null, ...children] : children[0],
+    }]
+  }
+  else {
+    return [props, ...children]
+  }
+}
+
+const genSchemaByRender = (renderFn, props, ...children) => {
+  const content = props[`${renderFn}!`]
+    if (content) {
+      const attrs = { ...props }
+      delete attrs[`${renderFn}!`]
+      if (isArray(content) && content[0] === 'Fragment') {
+        const [_1, _2, ...children] = content
+        return [attrs, ...children]
+      }
+      else {
+        return [attrs, content]
+      }
+    }
+
+    return [props, ...children]
+}
+
 export class Monitor {
   constructor({ el, store, source, getPassedProps, ...options }) {
     this.id = createRandomString(8)
@@ -89,7 +117,7 @@ export class Monitor {
   DropBox = (props) => {
     const { store } = this
     const { config, onSelect, onRemove, onChange, expParser } = this.getPassedProps()
-    const { id, fromSlotsToSchema, fromSchemaToSlots } = this.source
+    const { id, fromSlotsToSchema, fromSchemaToSlots, renderFn } = this.source
 
     if ('slot' in props && typeof slot !== 'number') {
       throw new Error(`${id} 传入的slot必须是自然数`)
@@ -100,11 +128,11 @@ export class Monitor {
 
     // 检查是否传入了必要的处理方法
     if (useSlots) {
-      if (!fromSchemaToSlots) {
-        throw new Error(`${id} 必须传入 fromSchemaToSlots`)
+      if (!fromSchemaToSlots && !renderFn) {
+        throw new Error(`${id} 必须传入 fromSchemaToSlots 或 renderFn`)
       }
-      if (!fromSlotsToSchema) {
-        throw new Error(`${id} 必须传入 fromSlotsToSchema`)
+      if (!fromSlotsToSchema && !renderFn) {
+        throw new Error(`${id} 必须传入 fromSlotsToSchema 或 renderFn`)
       }
     }
 
@@ -233,8 +261,9 @@ export class Monitor {
     const fields = []
     const props = []
 
-    const extract = (monitor) => {
+    const extract = (monitor, inputLoop) => {
       const { source, props: _props, children, bindField, importFields, importProps } = monitor
+      const { id, fromSlotsToSchema, fromSchemaToJSON, loopMap, renderFn } = source
 
       const [bindRootField] = bindField.split(/\.\[/) // 只需要路径的最顶部
       if (bindField && !fields.includes(bindRootField)) {
@@ -256,15 +285,32 @@ export class Monitor {
         })
       }
 
-      const { id, fromSlotsToSchema, fromSchemaToJSON } = source
+      const relateFields = [].concat(bindField || []).concat(importFields || [])
+      if (relateFields.some(item => item.substring(item.length - 3, 3) === '[*]') && !loopMap) {
+        throw new Error(`${id} 必须配置 loopMap 才能绑定子模型列表`)
+      }
+
+      // if (loopMap && !renderFn && !fromSchemaToJSON) {
+      //   throw new Error(`${id} 必须同时配置 loopMap 和 renderFn|fromSchemaToJSON 才能正常工作`)
+      // }
+
+      const { inputKey, outputAlias } = loopMap
       const attrs = {}
+      const loopPropValue = find(_props, (_, key) => key === inputKey)
+      const genLoopValue = (value) => {
+        return value.replace(new RegExp(createSafeExp(loopPropValue), 'g'), outputAlias)
+      }
+
       each(_props, (data, key) => {
         const { type, params, value } = data
-        if (type === VALUE_TYPES.EXP) {
-          attrs[key] = `{ ${value} }`
+        if (key === inputKey) {
+          attrs[key] = loopPropValue
+        }
+        else if (type === VALUE_TYPES.EXP) {
+          attrs[key] = `{ ${genLoopValue(value)} }`
         }
         else if (type === VALUE_TYPES.FN) {
-          attrs[`${key}(${params})`] = `{ ${value} }`
+          attrs[`${key}(${params})`] = `{ ${genLoopValue(value)} }`
         }
         else {
           attrs[key] = value
@@ -272,19 +318,21 @@ export class Monitor {
       })
 
       const output = ([id, attrs, ...children]) => {
-        return fromSchemaToJSON ? [id, ...fromSchemaToJSON(attrs, ...children)] : [id, attrs, ...children]
+        return renderFn ? genJSONByRender(renderFn, attrs, ...children)
+          : fromSchemaToJSON ? [id, ...fromSchemaToJSON(attrs, ...children)]
+          : [id, attrs, ...children]
       }
 
       if (children.length && isArray(children[0]) && isArray(children[0][0])) {
         if (!fromSlotsToSchema) {
           throw new Error(`${id} 必须传入 fromSlotsToSchema`)
         }
-        const slots = children.map(items => items.map(extract))
+        const slots = children.map(items => items.map(item => extract(item)))
         const [_attrs, _children] = fromSlotsToSchema.call(monitor, attrs, slots)
         return output([id, _attrs, ..._children])
       }
 
-      return output([id, attrs, ...children.map(extract)])
+      return output([id, attrs, ...children.map(child => extract(child))])
     }
     const jsx = extract(this)
 
@@ -345,8 +393,10 @@ export class DropDesigner extends Component {
 
       const item = this.createAndPutItem(this.items.length - 1, source)
 
-      const { fromSchemaToSlots, fromJSONToSchema } = source
-      const [_attrs, ..._slots] = fromJSONToSchema ? fromJSONToSchema(_props, ..._children) : [_props, ..._children]
+      const { fromSchemaToSlots, fromJSONToSchema, renderFn } = source
+      const [_attrs, ..._slots] = renderFn ? genSchemaByRender(renderFn, _props, ..._children)
+        : fromJSONToSchema ? fromJSONToSchema(_props, ..._children)
+        : [_props, ..._children]
       const [props, children] = fromSchemaToSlots ? fromSchemaToSlots.call(item, _attrs, _slots) : [_attrs, _slots]
 
       item.setExpProps(props)

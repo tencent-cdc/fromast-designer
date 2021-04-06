@@ -3,7 +3,7 @@ import { render, unmount } from 'nautil/dom'
 import { classnames, getConfig } from '../utils'
 import { Form, FormItem, Label, Input, Textarea, Select, Switcher } from '../components/form/form.jsx'
 import { RichPropEditor } from '../components/rich-prop-editor/rich-prop-editor.jsx'
-import { find, compute_, debounce, decideby } from 'ts-fns'
+import { find, compute_, debounce, decideby, makeKeyChain, isArray } from 'ts-fns'
 import { Designer } from '../components/designer/designer.jsx'
 import ScopeX from 'scopex'
 import { AutoModal } from '../components/modal/modal.jsx'
@@ -145,13 +145,52 @@ export class LayoutDesigner extends Component {
   handleBindField = (value) => {
     this.setState({ bindField: value }, () => {
       const selectedMonitor = this.store.getState()
-      const { fromFieldToProps } = selectedMonitor.source
+      const { fromMetaToProps } = selectedMonitor.source
 
       const schema = this.props.json?.model?.schema || {}
-      const meta = schema[value]
+      const chain = makeKeyChain(value)
+      let meta = schema
 
-      const props = fromFieldToProps(value, meta, selectedMonitor)
-      if (props) {
+      for (let i = 0, len = chain.length; i < len; i ++) {
+        const key = chain[i]
+        if (`<${key}>` in meta) {
+          const sub = meta[`<${key}>`]
+          const info = meta[`|${key}|`] || {}
+          let subSchema = null
+
+          if (chain[i + 1] === '*') {
+            if (!isArray(sub)) {
+              throw new Error(`无法从schema中读取${value}中的${key}，它不是一个子模型列表`)
+            }
+            subSchema = sub[0].schema
+            i ++
+          }
+          else {
+            if (isArray(sub)) {
+              throw new Error(`从schema中读取${value}是不允许的，必须在末尾加[*]，即${value}[*]`)
+            }
+            subSchema = sub.schema
+          }
+
+          // 只使用该子模型
+          if (i === len - 1) {
+            meta = info
+          }
+          // 使用子模型内部
+          else {
+            meta = subSchema
+          }
+        }
+        else if (key in meta) {
+          meta = meta[key]
+        }
+        else {
+          throw new Error(`无法从schema中读取${value}中的${key}，请检查选中字段是否正常`)
+        }
+      }
+
+      if (fromMetaToProps) {
+        const props = fromMetaToProps(value, meta, selectedMonitor)
         selectedMonitor.setExpProps(props)
       }
       selectedMonitor.bindField = value
@@ -226,34 +265,27 @@ export class LayoutDesigner extends Component {
                             <Label>绑定字段</Label>
                             <Select options={fieldsOptions} value={bindField} onChange={(e) => this.handleBindField(e.target.value)} placeholder="请选择字段"></Select>
                           </FormItem>
-                        }>
-                          <ElseIf is={selectedMonitor.source.type === COMPONENT_TYPES.VIEW} render={() => {
-                            return (
-                              <>
-                              <FormItem>
-                                  <Label>绑定字段</Label>
-                                  <Prompt type="input" options={fieldsOptions} onSelect={(e, item, focused) => {
-                                    const items = importFields.split(',').filter(item => !!item)
-                                    const { value } = item
+                        } />
+                        <FormItem>
+                          <Label>使用字段</Label>
+                          <Prompt type="input" options={fieldsOptions} onSelect={(e, item, focused) => {
+                            const items = importFields.split(',').filter(item => !!item)
+                            const { value } = item
 
-                                    if (items.includes(value)) {
-                                      return
-                                    }
+                            if (items.includes(value)) {
+                              return
+                            }
 
-                                    items.push(value)
-                                    this.handleChangeImport('fields', items.join(','))
-                                  }}>
-                                    <Input value={importFields} onChange={(e) => this.handleChangeImport('fields', e.target.value)} />
-                                  </Prompt>
-                                </FormItem>
-                                <FormItem>
-                                  <Label>绑定Props</Label>
-                                  <Input value={importProps} onChange={(e) => this.handleChangeImport('props', e.target.value)} />
-                                </FormItem>
-                              </>
-                            )
-                          }} />
-                        </If>
+                            items.push(value)
+                            this.handleChangeImport('fields', items.join(','))
+                          }}>
+                            <Input value={importFields} onChange={(e) => this.handleChangeImport('fields', e.target.value)} />
+                          </Prompt>
+                        </FormItem>
+                        <FormItem>
+                          <Label>使用Props</Label>
+                          <Input value={importProps} onChange={(e) => this.handleChangeImport('props', e.target.value)} />
+                        </FormItem>
                       </Form>
                     } />
                   </Switch>

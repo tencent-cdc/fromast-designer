@@ -60,16 +60,21 @@ export class Monitor {
     this.props = {}
     this.getPassedProps = getPassedProps
     this.options = options
+
     this.children = []
     this.elements = []
+
     this.store = store
 
     this.bindField = ''
+    this.importFields = []
+    this.importProps = []
 
     if (source.props && source.props.length) {
       this.setInitProps(source.props)
     }
   }
+
   // 自动绑定序号，不用自己传slot
   useDropBoxes(count) {
     const DropBoxes = []

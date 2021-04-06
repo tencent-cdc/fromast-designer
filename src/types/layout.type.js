@@ -35,7 +35,7 @@ export const LayoutConfigType = new Dict({
           // 在绑定字段的时候被调用
           // 将接收到的JSON的一个meta，转化为UI配置里面的props配置具体值
           // (field, meta, monitor)
-          fromFieldToProps: ifexist(Function),
+          fromMetaToProps: ifexist(Function),
 
           // 有些情况下，组件的内容是通过 render={() => <Content />} 这种形式渲染，通过 fromSchemaToSlots 可以把JSON生成这种运行时需要的逻辑
           fromSchemaToSlots: ifexist(Function),

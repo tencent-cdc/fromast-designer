@@ -184,11 +184,13 @@ export function genFieldsOptions(modelJSON, collapsed) {
         const name = key.substring(1, key.length - 1)
         const fac = schema[`|${name}|`]
         const label = fac ? fac.label : name
-        const text = parentText ? `${parentText}.${label}` : label
+
+        const _text = parentText ? `${parentText}.${label}` : label
+        const text = isArray(submodel) ? `${_text}[*]` : _text
         const value = parentPath ? `${parentPath}.${name}` : name
 
         const submodel = schema[key]
-        const children = isArray(submodel) ? gen(submodel[0], `${text}[*]`, `${value}[*]`) : gen(submodel, text, value)
+        const children = isArray(submodel) ? gen(submodel, text, `${value}[*]`) : gen(submodel, text, value)
 
         const option = { text, value, children }
         options.push(option)

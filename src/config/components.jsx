@@ -86,7 +86,7 @@ export const InputConfig = {
     },
   ],
 
-  fromFieldToProps(field, meta, monitor) {
+  fromMetaToProps(field, meta, monitor) {
     return {
       value: `{ ${field}.value }`,
       'onChange(e)': `{ ${field}.value = e.target.value }`,
@@ -173,7 +173,7 @@ export const InputNumberConfig = {
     },
   ],
 
-  fromFieldToProps(field, meta, monitor) {
+  fromMetaToProps(field, meta, monitor) {
     return {
       value: `{ ${field}.value }`,
       'onChange(e)': `{ ${field}.value = e.target.value }`,
@@ -256,7 +256,7 @@ export const TextareaConfig = {
     },
   ],
 
-  fromFieldToProps(field, meta, monitor) {
+  fromMetaToProps(field, meta, monitor) {
     return {
       value: `{ ${field}.value }`,
       'onChange(e)': `{ ${field}.value = e.target.value }`,
@@ -345,7 +345,7 @@ export const SelectConfig = {
     },
   ],
 
-  fromFieldToProps(field, meta, monitor) {
+  fromMetaToProps(field, meta, monitor) {
     return {
       value: `{ ${field}.value }`,
       'onChange(e)': `{ ${field}.value = e.target.value }`,
@@ -439,7 +439,7 @@ export const RadioConfig = {
     },
   ],
 
-  fromFieldToProps(field, meta, monitor) {
+  fromMetaToProps(field, meta, monitor) {
     return {
       value: `{ ${field}.value }`,
       'onChange(e)': `{ ${field}.value = e.target.value }`,
@@ -532,7 +532,7 @@ export const CheckboxConfig = {
     },
   ],
 
-  fromFieldToProps(field, meta, monitor) {
+  fromMetaToProps(field, meta, monitor) {
     return {
       value: `{ ${field}.value }`,
       'onChange(e)': `{ ${field}.value = e.target.value }`,
